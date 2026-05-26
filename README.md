@@ -19,39 +19,19 @@ By creating a simulated video-call environment with a virtual interviewer, the s
 ## 🛠️ Tech Stack & Architecture
 
 * **Python 3.14**
-* **OpenCV (`cv2`):** Handles video capturing, geometric projections via perspective solvers, matrix transformations, and UI rendering.
-* **MediaPipe (`tasks.python.vision`):** Utilizes the cutting-edge `FaceLandmarker` pipeline to track 478 dense 3D facial landmarks in real time under variable lighting conditions.
+* **OpenCV:** Handles video capturing, geometric projections via perspective solvers, matrix transformations, and UI rendering.
+* **MediaPipe:** Utilizes the cutting-edge `FaceLandmarker` pipeline to track 478 dense 3D facial landmarks in real time under variable lighting conditions.
 * **NumPy:** Powers high-speed vector math, matrix definitions for camera intrinsics, and real-time statistical computations (standard deviation).
 * ---
 
 ## 🧠 Architectural & Mathematical Foundations
 
 ### 1. 3D Head Pose Estimation (Perspective-n-Point)
-To avoid the inaccuracies of standard 2D tracking, the tool solves the **Perspective-n-Point (PnP)** problem. It establishes a correspondence between a generic 3D facial model and the 2D projected pixels captured by the camera using the following camera intrinsic matrix ($K$):
-
-$$K =  egin{bmatrix} f_x & 0 & c_x \ 0 & f_y & c_y \ 0 & 0 & 1 \end{bmatrix}$$
-
-Where $f_x, f_y$ represent the camera's focal length (approximated from frame width), and $c_x, c_y$ represent the optical center of the image frame. The resulting rotation vector ($ ec{r}$) is transformed via Rodrigues' rotation formula into a $3 	imes 3$ rotation matrix ($R$) and decomposed into standard Euler angles:
-* **Pitch ($	heta_x$):** Indicates looking up (often correlated with cognitive abstract thinking/recalling memory) or looking down.
-* **Yaw ($	heta_y$):** Indicates horizontal turning (looking away from the interviewer).
-* **Roll ($	heta_z$):** Indicates lateral head tilt.
-
+To avoid the inaccuracies of standard 2D tracking, the tool solves the **Perspective-n-Point (PnP)** problem. It establishes a correspondence between a generic 3D facial model and the 2D projected pixels captured by the camera.
 ### 2. Postural Instability Metric
-Nervousness is rarely defined by a static head angle; instead, it manifests as high-frequency posture adjustments. The system monitors a temporal window $W$ of size $N=30$ frames (~1 second of video):
-
-$$\sigma_{yaw} = \sqrt{rac{1}{N} \sum_{i=1}^{N} (y_i -  ar{y})^2}$$
-
-If $\sigma_{yaw}$ or $\sigma_{pitch}$ exceeds a strictly calibrated threshold ($	au = 2.5^{\circ}$), the user's posture state shifts from **"Stable (Confidence)"** to **"Instabile (Tension)"**.
-
+Nervousness is rarely defined by a static head angle; instead, it manifests as high-frequency posture adjustments.
 ### 3. Horizontal Gaze Ratio
-To ensure robust eye contact verification that remains unaffected by rapid eye blinking, the tool calculates a horizontal ratio based on three anchor landmarks: **Outer Corner (33)**, **Inner Corner (133)**, and **Iris Center (468)**.
-
-$$	ext{Gaze Ratio} = rac{\lVert P_{	ext{Iris}} - P_{	ext{Inner Corner}} 
-Vert}{\lVert P_{	ext{Outer Corner}} - P_{	ext{Iris}} 
-Vert}$$
-
-* **Direct Eye Contact:** $	ext{Gaze Ratio}  pprox 1.0$ (Iris perfectly centered).
-* **Left / Right Deviation:** $	ext{Gaze Ratio} < 0.6$ or $> 1.4$.
+To ensure robust eye contact verification that remains unaffected by rapid eye blinking, the tool calculates a horizontal ratio
 
 ---
 ## 🔮 Future Roadmap
