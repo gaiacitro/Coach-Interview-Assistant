@@ -22,7 +22,7 @@ By creating a simulated video-call environment with a virtual interviewer, the s
 * **OpenCV:** Handles video capturing, geometric projections via perspective solvers, matrix transformations, and UI rendering.
 * **MediaPipe:** Utilizes the cutting-edge `FaceLandmarker` pipeline to track 478 dense 3D facial landmarks in real time under variable lighting conditions.
 * **NumPy:** Powers high-speed vector math, matrix definitions for camera intrinsics, and real-time statistical computations (standard deviation).
-* ---
+---
 
 ## 🧠 Architectural & Mathematical Foundations
 
