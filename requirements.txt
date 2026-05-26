@@ -1,1 +1,4 @@
-ciao
+#How to install: "pip install -r requirements.txt"
+
+#for the frontend
+customtkinter 
