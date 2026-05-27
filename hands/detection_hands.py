@@ -39,11 +39,20 @@ if not cap.isOpened():
 print("Sistema avviato. Premi 'q' per uscire.")
 running = True
 
+tempo_mani = 0.0
+tempo_precedente = time.time()
+
 # --- 4. CICLO PRINCIPALE ---
 while running:
     successo, frame = cap.read()
     if not successo:
         continue
+
+    # Calcolo del delta_time reale
+    tempo_attuale = time.time()
+    delta_time = tempo_attuale - tempo_precedente
+    tempo_precedente = tempo_attuale
+
 
     # Specchia il frame (effetto specchio) e converti i colori per MediaPipe
     frame = cv2.flip(frame, 1)
@@ -68,7 +77,22 @@ while running:
                 
                 # Disegna un cerchio verde per ogni punto della mano
                 cv2.circle(frame, (cx, cy), 4, (0, 255, 0), -1)
+    
+    
+    # --- 7. LOGICA DEL CONFRONTO E CRONOMETRO ---
+    condizione_soddisfatta = False
 
+    if risultati.hand_landmarks:
+
+        tempo_mani += delta_time
+        condizione_soddisfatta = True
+
+    # --- 8. GRAFICA E TIMER A SCHERMO ---
+    colore_interfaccia = (0, 255, 0) if condizione_soddisfatta else (0, 0, 255)
+    stato_testo = "MANI VISIBILI" if condizione_soddisfatta else "MANI BASSE"
+    
+    cv2.putText(frame, f"Tempo Area Viso: {tempo_mani:.1f} s", (10, 40), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, colore_interfaccia, 2)
     # --- 6. MOSTRA LA FINESTRA ---
     # Questo è il comando che mancava nel tuo codice originale per vedere il video!
     cv2.imshow("Tracciamento Mani - Base", frame)
