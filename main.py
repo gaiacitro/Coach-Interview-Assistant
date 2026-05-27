@@ -3,7 +3,6 @@ import customtkinter as ctk
 
 from screens.screen1 import Screen1
 from screens.screen2_3 import Screen2_3
-from screens.screen4 import Screen4
 
 class InterviewApp(ctk.CTk):
     def __init__(self):
@@ -35,8 +34,16 @@ class InterviewApp(ctk.CTk):
         elif screen_name == "Screen2Uni":
             Screen2_3(self.container, self, mode="uni")
         elif screen_name == "Screen4":
-            # Passiamo 'data' (che sarà la nostra lista di domande) alla schermata
-            Screen4(self.container, self, selected_questions=data)
+            self.withdraw() 
+            from screens.screen4 import launch_webview_interview
+            launch_webview_interview(data)
+            self.clear_container()
+            self.deiconify() 
+            self.show_screen("Screen1") 
+            
+        else:
+            print(f"Errore: Schermata {screen_name} non trovata.")
+
 
 if __name__ == "__main__":
     app = InterviewApp()

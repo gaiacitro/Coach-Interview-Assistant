@@ -1,5 +1,6 @@
-# screens/Screen2_3_interview.py
+# screens/screen2_3.py
 import customtkinter as ctk
+import random
 from config import PRINCIPAL_COLOR, SECONDARY_COLOR
 
 class Screen2_3(ctk.CTkFrame):
@@ -8,6 +9,9 @@ class Screen2_3(ctk.CTkFrame):
         self.controller = controller
         
         self.pack(expand=True, fill="both", padx=40, pady=40)
+
+        # --- NOVITÀ: Lista per tenere traccia delle checkbox create ---
+        self.checkboxes = []
 
         # Determina i testi in base alla modalità ("job" o "uni")
         title_text = "Job Interview Practice" if mode == "job" else "University Oral Exam Practice"
@@ -59,26 +63,65 @@ class Screen2_3(ctk.CTkFrame):
                                 text_color="black", hover_color=SECONDARY_COLOR, command=self.add_custom_question)
         add_btn.pack(side="right")
 
-        # Bottone Invia comune
-        # Al posto del vecchio comando lambda, mettiamo:
+        # --- NOVITÀ: Label per mostrare gli errori in rosso (inizialmente vuota) ---
+        self.error_label = ctk.CTkLabel(self, text="", text_color="red", font=("Helvetica", 14, "bold"))
+        self.error_label.pack(pady=(5, 0))
+
+        # Bottone Invia (Ora richiama la funzione di validazione invece di passare subito alla schermata 4)
         submit_btn = ctk.CTkButton(
             self, text="Start the interview", font=("Helvetica", 18, "bold"), 
             fg_color=PRINCIPAL_COLOR, text_color="black", height=60, corner_radius=15,
             hover_color=SECONDARY_COLOR, 
-            command=lambda: self.controller.show_screen(
-                "Screen4", 
-                data=["Domanda di prova 1", "Domanda di prova 2", "Domanda di prova 3"]
-            )
+            command=self.validate_and_start
         )
-        submit_btn.pack(fill="x", pady=(20, 0))
+        submit_btn.pack(fill="x", pady=(10, 0))
 
     def add_checkbox(self, text):
         cb = ctk.CTkCheckBox(self.scroll_frame, text=text, font=("Helvetica", 13), 
                              fg_color=PRINCIPAL_COLOR, hover_color=SECONDARY_COLOR, border_color="gray", border_width=2)
         cb.pack(anchor="w", pady=8, padx=10)
+        
+        # Salviamo l'oggetto checkbox nella nostra lista per controllarlo dopo
+        self.checkboxes.append(cb)
 
     def add_custom_question(self):
         text = self.custom_entry.get()
         if text.strip():
             self.add_checkbox(text)
             self.custom_entry.delete(0, 'end')
+
+    def validate_and_start(self):
+        # 1. Controlla se il campo del numero è vuoto o contiene testo non valido
+        num_str = self.num_questions.get().strip()
+        if not num_str:
+            self.error_label.configure(text="Error: Please enter the number of questions.")
+            return
+
+        try:
+            num_requested = int(num_str)
+            if num_requested <= 0:
+                self.error_label.configure(text="Error: The number must be greater than 0.")
+                return
+        except ValueError:
+            self.error_label.configure(text="Error: Please enter a valid number (e.g. 3).")
+            return
+
+        # 2. Raccoglie tutte le domande che hanno la spunta
+        selected_questions = []
+        for cb in self.checkboxes:
+            if cb.get() == 1: # 1 significa che è spuntata
+                selected_questions.append(cb.cget("text"))
+
+        # 3. Controlla se le domande selezionate sono sufficienti
+        if len(selected_questions) < num_requested:
+            self.error_label.configure(
+                text=f"Error: You requested {num_requested} questions, but selected only {len(selected_questions)}."
+            )
+            return
+
+        # 4. Estrae casualmente il numero di domande richieste (se ne ha selezionate di più)
+        final_questions = random.sample(selected_questions, num_requested)
+
+        # 5. Se è tutto ok, svuota eventuali errori vecchi e avvia l'intervista!
+        self.error_label.configure(text="")
+        self.controller.show_screen("Screen4", data=final_questions)

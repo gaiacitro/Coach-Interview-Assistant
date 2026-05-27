@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
+            font-family: 'Helvetica', sans-serif;
+        }
+        video {
+            position: absolute; top: 0; left: 0;
+            width: 100vw; height: 100vh; object-fit: cover; z-index: 1;
+        }
+        #top-bar {
+            position: absolute; top: 10%; width: 100%; text-align: center; z-index: 10;
+        }
+        
+        /* 1. STILE PER LE ISTRUZIONI (Testo grande, bianco, senza sfondo) */
+        .instruction-style {
+            font-size: 32px; 
+            font-weight: bold; 
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8); 
+            padding: 0 40px;
+        }
+
+        /* 2. STILE PER LE DOMANDE (Testo più piccolo, nero, riquadro bianco stondato) */
+        .question-style {
+            font-size: 22px; 
+            font-weight: bold; 
+            color: black; 
+            background-color: rgba(255, 255, 255, 0.95); 
+            padding: 15px 35px; 
+            border-radius: 20px; 
+            display: inline-block; 
+            max-width: 80%; 
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.4); 
+        }
+
+        #bottom-bar {
+            position: absolute; bottom: 5%; width: 100%; text-align: center; z-index: 10;
+        }
+        #info {
+            font-size: 18px; color: #e2e8f0; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+    <video src="assets/loop.mp4" autoplay loop muted></video>
+
+    <div id="top-bar">
+        <div id="question" class="instruction-style">Press SPACE to show the first question and begin...</div>
+    </div>
+
+    <div id="bottom-bar">
+        <div id="info">Press [SPACE] when you have finished answering to proceed to the next question</div>
+    </div>
+
+    <script>
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                window.pywebview.api.get_next_question().then(function(response) {
+                    
+                    let qDiv = document.getElementById('question');
+                    let infoDiv = document.getElementById('info');
+
+                    if (response === "END") {
+                        // RIMETTIAMO LO STILE ISTRUZIONI
+                        qDiv.className = "instruction-style";
+                        qDiv.innerText = "Interview finished! Calculating results...";
+                        
+                        /*infoDiv.innerText = "Calculating results...";*/
+                        
+                        setTimeout(() => {
+                            window.pywebview.api.run_analysis().then(() => {
+                                window.pywebview.api.close_window();
+                            });
+                        }, 500);
+                        
+                    } else {
+                        // METTIAMO LO STILE DOMANDA (riquadro bianco)
+                        qDiv.className = "question-style";
+                        qDiv.innerText = response;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
