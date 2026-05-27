@@ -1,8 +1,8 @@
-# screens/screen2_interview.py
+# screens/Screen2_3_interview.py
 import customtkinter as ctk
 from config import PRINCIPAL_COLOR, SECONDARY_COLOR
 
-class Screen2(ctk.CTkFrame):
+class Screen2_3(ctk.CTkFrame):
     def __init__(self, parent, controller, mode="job"):
         super().__init__(parent, fg_color="transparent")
         self.controller = controller
@@ -60,9 +60,16 @@ class Screen2(ctk.CTkFrame):
         add_btn.pack(side="right")
 
         # Bottone Invia comune
-        submit_btn = ctk.CTkButton(self, text="Invia", font=("Helvetica", 18, "bold"), 
-                                   fg_color=PRINCIPAL_COLOR, text_color="black", height=60, corner_radius=15,
-                                   hover_color=SECONDARY_COLOR, command=lambda: print("Pratica avviata!"))
+        # Al posto del vecchio comando lambda, mettiamo:
+        submit_btn = ctk.CTkButton(
+            self, text="Start the interview", font=("Helvetica", 18, "bold"), 
+            fg_color=PRINCIPAL_COLOR, text_color="black", height=60, corner_radius=15,
+            hover_color=SECONDARY_COLOR, 
+            command=lambda: self.controller.show_screen(
+                "Screen4", 
+                data=["Domanda di prova 1", "Domanda di prova 2", "Domanda di prova 3"]
+            )
+        )
         submit_btn.pack(fill="x", pady=(20, 0))
 
     def add_checkbox(self, text):

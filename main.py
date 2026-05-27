@@ -1,9 +1,9 @@
 # main.py
 import customtkinter as ctk
 
-# --- MODIFICA QUI: Importa le classi dai nuovi nomi dei file ---
 from screens.screen1 import Screen1
-from screens.screen2 import Screen2
+from screens.screen2_3 import Screen2_3
+from screens.screen4 import Screen4
 
 class InterviewApp(ctk.CTk):
     def __init__(self):
@@ -25,21 +25,18 @@ class InterviewApp(ctk.CTk):
         for widget in self.container.winfo_children():
             widget.destroy()
 
-    def show_screen(self, screen_name):
+    def show_screen(self, screen_name, data=None):
         self.clear_container()
         
-        # Inizializza la classe corretta in base al nome richiesto
         if screen_name == "Screen1":
             Screen1(self.container, self)
-            
         elif screen_name == "Screen2Job":
-            Screen2(self.container, self, mode="job")
-            
+            Screen2_3(self.container, self, mode="job")
         elif screen_name == "Screen2Uni":
-            Screen2(self.container, self, mode="uni")
-            
-        else:
-            print(f"Errore: Schermata {screen_name} non trovata.")
+            Screen2_3(self.container, self, mode="uni")
+        elif screen_name == "Screen4":
+            # Passiamo 'data' (che sarà la nostra lista di domande) alla schermata
+            Screen4(self.container, self, selected_questions=data)
 
 if __name__ == "__main__":
     app = InterviewApp()
