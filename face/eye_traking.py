@@ -43,6 +43,12 @@ def calcola_distanza(punto1, punto2):
 
 detector_viso = vision.FaceLandmarker.create_from_options(options_viso)
 
+# Variabili per il cronometro speciale
+tempo_occhi_girati = 0.0
+tempo_precedente = time.time()
+
+
+
 cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
@@ -65,6 +71,12 @@ while running:
         image_format=mp.ImageFormat.SRGB,
         data=frame_rgb
     )
+    
+    # Calcolo del delta_time reale
+    tempo_attuale = time.time()
+    delta_time = tempo_attuale - tempo_precedente
+    tempo_precedente = tempo_attuale
+
     timestamp_ms = int(time.time() * 1000)
     risultati_viso = detector_viso.detect_for_video(mp_image, timestamp_ms)
 
@@ -141,11 +153,16 @@ while running:
                 colore_sguardo = (0, 0, 255)
 
             # Mostro i dati a schermo
-            cv2.putText(frame, f"Sguardo: {stato_sguardo}", (20, 230), cv2.FONT_HERSHEY_SIMPLEX, 0.7, colore_sguardo, 2)
+            cv2.putText(frame, f"Sguardo: {stato_sguardo}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, colore_sguardo, 2)
             cv2.putText(frame, f"Gaze Ratio: {gaze_ratio:.2f}", (20, 260), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             # --- FINE LOGICA TRACCIAMENTO SGUARDO ---
-    condizione_soddisfatta = False
-    colore_interfaccia = (0, 255, 0) if condizione_soddisfatta else (0, 0, 255)
+    if stato_sguardo != "Contatto Visivo":
+        tempo_occhi_girati += delta_time
+        
+
+    cv2.putText(frame, f"Tempo Area Viso: {tempo_occhi_girati:.1f} s", (10, 100), 
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, colore_sguardo, 2)
+     
     cv2.imshow("Movimento Viso", frame)
 
     # Gestione uscita
