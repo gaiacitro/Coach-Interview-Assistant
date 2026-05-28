@@ -1,4 +1,16 @@
 #How to install: "pip install -r requirements.txt"
 
-#for the frontend
-customtkinter 
+# --- Frontend  and User Interface ---
+customtkinter
+pywebview
+
+# --- Computer Vision (Face and Hands) ---
+opencv-python
+mediapipe
+numpy
+
+# --- Audio Recording and Analysis ---
+sounddevice
+scipy
+pydub
+faster-whisper
