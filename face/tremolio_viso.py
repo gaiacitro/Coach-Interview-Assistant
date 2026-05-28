@@ -50,14 +50,24 @@ if not cap.isOpened():
 # Crea code temporali per misurare la stabilità (buffer di ~1 secondo a 30fps)
 storico_yaw = deque(maxlen=30)
 storico_pitch = deque(maxlen=30)
+storico_roll = deque(maxlen=30)
 
 print("Sistema avviato. Premi 'q' per uscire.")
 running = True
+# --- NUOVE VARIABILI PER IL CRONOMETRO ---
+tempo_precedente = time.time()
+tempo_instabilita = 0.0
 
 while running:
     successo, frame = cap.read()
     if not successo:
         continue
+
+    # --- CALCOLO DEL TEMPO TRASCORSO (DELTA TIME) ---
+    tempo_attuale = time.time()
+    delta_time = tempo_attuale - tempo_precedente
+    tempo_precedente = tempo_attuale
+
     frame = cv2.flip(frame, 1)
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     
@@ -109,25 +119,43 @@ while running:
             yaw = angles[1]
             roll = angles[2]
 
+            # Normalizzazione
+            if roll < -90:
+                roll += 180
+            elif roll > 90:
+                roll -= 180
+
+            # Normalizzazione
+            if pitch < -90:
+               pitch += 180
+            elif pitch > 90:
+                pitch -= 180
+            
+
             # --- INIZIO LOGICA TREMOLIO ---
             storico_pitch.append(pitch)
             storico_yaw.append(yaw)
+            storico_roll.append(roll)
 
             # Aspetta di avere la coda piena (30 frame) per calcolare la statistica
             if len(storico_yaw) == 30:
                 deviazione_yaw = np.std(storico_yaw)
                 deviazione_pitch = np.std(storico_pitch)
+                deviazione_roll = np.std(storico_roll)
 
                 stato_postura = "Stabile (Fiducia)"
                 colore_postura = (0, 255, 0) # Verde
 
-                soglia_tremolio = 100 ######## Modifica questo valore se è troppo sensibile
+                soglia_tremolio = 15 ######## Modifica questo valore se è troppo sensibile
                 if deviazione_yaw > soglia_tremolio or deviazione_pitch > soglia_tremolio:
                     stato_postura = "Instabile (Tensione)"
                     colore_postura = (0, 0, 255) # Rosso
+                    tempo_instabilita += delta_time # Incrementa il timer
 
-                cv2.putText(frame, f"Postura: {stato_postura}", (20, 160), cv2.FONT_HERSHEY_SIMPLEX, 0.7, colore_postura, 2)
-                cv2.putText(frame, f"Dev Yaw: {deviazione_yaw:.1f} | Dev Pitch: {deviazione_pitch:.1f}", (20, 190), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                cv2.putText(frame, f"Postura: {stato_postura}", (20, 190), cv2.FONT_HERSHEY_SIMPLEX, 0.7, colore_postura, 2)
+                #cv2.putText(frame, f"Dev Yaw: {deviazione_yaw:.1f} | Dev Pitch: {deviazione_pitch:.1f} Dev Roll:{deviazione_roll:.1f}", (20, 210) , cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                cv2.putText(frame, f"Tempo Instabilita: {tempo_instabilita:.1f} s", (20, 220), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+
             # --- FINE LOGICA TREMOLIO ---
 
             # 5. Logica comportamentale
@@ -147,9 +175,11 @@ while running:
             cv2.putText(frame, f"Stato: {stato_testa}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.putText(frame, f"Pitch: {int(pitch)}", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
             cv2.putText(frame, f"Yaw: {int(yaw)}", (20, 130), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+            cv2.putText(frame, f"Roll: {int(roll)}", (20, 160), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
-    condizione_soddisfatta = False
-    colore_interfaccia = (0, 255, 0) if condizione_soddisfatta else (0, 0, 255)
+
+    #condizione_soddisfatta = False
+    #colore_interfaccia = (0, 255, 0) if condizione_soddisfatta else (0, 0, 255)
     cv2.imshow("Movimento Viso", frame)
 
     # Gestione uscita
@@ -162,3 +192,7 @@ cap.release()
 cv2.destroyAllWindows()
 detector_viso.close()
 
+# --- RESOCONTO FINALE SUL TERMINALE ---
+print("\n" + "="*50)
+print(f" TEMPO TOTALE IN STATO DI INSTABILITA': {tempo_instabilita:.2f} secondi")
+print("="*50 + "\n")
