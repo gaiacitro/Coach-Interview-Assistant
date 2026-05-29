@@ -6,30 +6,18 @@
         body, html {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
             font-family: 'Helvetica', sans-serif;
-            background-color: black; /* Sfondo scuro di sicurezza */
+            background-color: black;
         }
         
-        /* Stile comune a entrambi i video */
         .avatar-video {
             position: absolute; top: 0; left: 0;
             width: 100vw; height: 100vh; object-fit: cover;
         }
 
-        /* Il video zitto sta sotto (z-index: 1) */
-        #video-zitto {
-            z-index: 1;
-            opacity: 1;
-        }
+        #video-zitto { z-index: 1; opacity: 1; }
+        #video-parla { z-index: 2; opacity: 0; }
 
-        /* Il video parla sta sopra (z-index: 2) ma all'inizio è invisibile (opacity: 0) */
-        #video-parla {
-            z-index: 2;
-            opacity: 0;
-        }
-
-        #top-bar {
-            position: absolute; top: 10%; width: 100%; text-align: center; z-index: 10;
-        }
+        #top-bar { position: absolute; top: 10%; width: 100%; text-align: center; z-index: 10; }
         
         .instruction-style {
             font-size: 32px; font-weight: bold; color: white;
@@ -43,17 +31,13 @@
             box-shadow: 0px 4px 15px rgba(0,0,0,0.4); 
         }
 
-        #bottom-bar {
-            position: absolute; bottom: 5%; width: 100%; text-align: center; z-index: 10;
-        }
-        #info {
-            font-size: 18px; color: #e2e8f0; text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
-        }
+        #bottom-bar { position: absolute; bottom: 5%; width: 100%; text-align: center; z-index: 10; }
+        #info { font-size: 18px; color: #e2e8f0; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); }
     </style>
 </head>
 <body>
-    <video id="video-zitto" class="avatar-video" src="assets/loop_zitto0.mp4" autoplay loop muted></video>
-    <video id="video-parla" class="avatar-video" src="assets/loop_parla.mp4" muted></video>
+    <video id="video-zitto" class="avatar-video" src="assets/loop_zitto.mp4" autoplay loop muted preload="auto"></video>
+    <video id="video-parla" class="avatar-video" src="assets/loop_parla.mp4" muted preload="auto"></video>
 
     <div id="top-bar">
         <div id="question" class="instruction-style">Press SPACE to show the first question and begin...</div>
@@ -67,43 +51,65 @@
         const videoZitto = document.getElementById('video-zitto');
         const videoParla = document.getElementById('video-parla');
 
-        // Quando il video "parla" finisce, lo nascondiamo di nuovo
+        // Variabile per capire a che punto siamo dell'intervista
+        let interviewState = "active"; // Può essere: "active", "analyzing", "done"
+
+        videoParla.currentTime = 0;
+
         videoParla.addEventListener('ended', function() {
-            videoParla.style.opacity = 0; // Torna invisibile
-            // Il video sotto (video-zitto) non si è mai fermato, quindi riappare magicamente!
+            videoParla.style.opacity = 0; 
+            videoParla.currentTime = 0; 
         });
 
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space') {
-                window.pywebview.api.get_next_question().then(function(response) {
-                    
-                    let qDiv = document.getElementById('question');
-                    let infoDiv = document.getElementById('info');
+                
+                // 1. SE L'INTERVISTA È IN CORSO...
+                if (interviewState === "active") {
+                    window.pywebview.api.get_next_question().then(function(response) {
+                        
+                        let qDiv = document.getElementById('question');
+                        let infoDiv = document.getElementById('info');
 
-                    if (response === "END") {
-                        qDiv.className = "instruction-style";
-                        qDiv.innerText = "Interview finished!";
-                        infoDiv.innerText = "Calculating results. Please check the console...";
-                        
-                        // Nascondiamo il video "parla" per sicurezza
-                        videoParla.style.opacity = 0;
-                        
-                        setTimeout(() => {
-                            window.pywebview.api.run_speech_analysis().then(() => {
-                                window.pywebview.api.close_window();
-                            });
-                        }, 500);
-                        
-                    } else {
-                        qDiv.className = "question-style";
-                        qDiv.innerText = response;
+                        if (response === "END") {
+                            // Cambiamo stato! Blocchiamo lo spazio mentre fa i calcoli
+                            interviewState = "analyzing";
+                            
+                            qDiv.className = "instruction-style";
+                            qDiv.innerText = "Interview finished!";
+                            infoDiv.innerText = "Calculating results. Please check the console...";
+                            
+                            videoParla.style.opacity = 0;
+                            
+                            // Avviamo l'analisi
+                            setTimeout(() => {
+                                window.pywebview.api.run_speech_analysis().then(() => {
+                                    // ANALISI FINITA!
+                                    interviewState = "done"; // Sblocchiamo la barra spaziatrice
+                                    
+                                    qDiv.innerText = "Analysis Complete!";
+                                    infoDiv.innerText = "Press [SPACE] to view your final report";
+                                });
+                            }, 500);
+                            
+                        } else {
+                            // Nuova Domanda
+                            qDiv.className = "question-style";
+                            qDiv.innerText = response;
 
-                        // FACCIAMO APPARIRE IL VIDEO PARLA!
-                        videoParla.currentTime = 0; // Lo fa ripartire dall'inizio
-                        videoParla.play();          // Lo avvia
-                        videoParla.style.opacity = 1; // Lo rende visibile istantaneamente coprendo quello sotto
-                    }
-                });
+                            videoParla.style.opacity = 1;
+                            videoParla.play();
+                        }
+                    });
+                } 
+                
+                // 2. SE L'ANALISI È COMPLETATA...
+                else if (interviewState === "done") {
+                    // Solo in questo momento la finestra si chiude!
+                    window.pywebview.api.close_window();
+                }
+                
+                // (Se è "analyzing", la barra spaziatrice viene ignorata per non fare danni)
             }
         });
     </script>

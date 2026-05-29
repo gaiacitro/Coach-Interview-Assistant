@@ -51,6 +51,38 @@ class InterviewAPI:
             print("\n--- INTERVIEW FINISHED ---")
             return "END"
 
+    # =================================================================
+    # VERSION 1: TEST MODE (MOCK RECORDING) - CURRENTLY ACTIVE
+    # (Usa i file audio già esistenti per non dover parlare ogni volta)
+    # =================================================================
+    def start_recording(self):
+        print("\n>>> [REC - TEST MODE] Simulation started. Real audio is NOT recorded.")
+        self.start_time = time.time()
+        self.is_recording = True
+
+    def stop_and_save_recording(self):
+        print(">>> [STOP - TEST MODE] Simulation stopped.")
+        
+        # Alternates between q1 and q2
+        if self.current_q_index % 2 != 0:
+            file_path = "response_q1.wav"
+        else:
+            file_path = "response_q2.wav"
+            
+        self.is_recording = False
+        
+        self.session_results.append({
+            "question": self.current_question_text,
+            "audio_file": file_path
+        })
+        print(f"    [ Mock audio attached: {file_path} ]")
+
+
+    # =================================================================
+    # VERSION 2: REAL RECORDING MODE - CURRENTLY COMMENTED OUT
+    # (Per riattivarla, togli i ''' da qui sotto e mettili attorno alla Version 1)
+    # =================================================================
+    '''
     def start_recording(self):
         print("\n>>> [REC] Recording started! I am listening.")
         max_duration = 300 # Max 5 minutes buffer
@@ -64,9 +96,9 @@ class InterviewAPI:
         duration = time.time() - self.start_time
         num_samples = int(duration * self.fs)
         trimmed = self.recording_array[:num_samples]
-        
         file_path = f"response_q{self.current_q_index}.wav"
         write(file_path, self.fs, trimmed)
+        
         self.is_recording = False
         
         self.session_results.append({
@@ -74,6 +106,7 @@ class InterviewAPI:
             "audio_file": file_path
         })
         print(f"    [ Audio saved: {file_path} ]")
+    '''
 
     def run_speech_analysis(self):
         # Delegate the entire analysis and console printing to speech.py
