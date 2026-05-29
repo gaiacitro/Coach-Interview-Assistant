@@ -9,6 +9,7 @@ from scipy.io.wavfile import write
 
 # Import the specific printing/analyzing function from our backend
 from speech import process_and_print_speech_analysis
+from hands.hand import HandTrackerGeneral # <--- NUOVO IMPORT
 
 class InterviewAPI:
     def __init__(self, questions):
@@ -24,6 +25,8 @@ class InterviewAPI:
         
         self.session_results = []
         self.current_question_text = ""
+        # Inizializziamo il tracker delle mani
+        self.hand_tracker_general = HandTrackerGeneral()
 
     def get_next_question(self):
         # Cancel any pending 3-second timer if user presses space early
@@ -59,9 +62,13 @@ class InterviewAPI:
         print("\n>>> [REC - TEST MODE] Simulation started. Real audio is NOT recorded.")
         self.start_time = time.time()
         self.is_recording = True
+        self.hand_tracker_general.start() # <--- AVVIA IL TRACCIAMENTO MANI
 
     def stop_and_save_recording(self):
         print(">>> [STOP - TEST MODE] Simulation stopped.")
+
+        # Ferma le mani e recupera il tempo speso a gesticolare
+        tempo_gesticolazione = self.hand_tracker_general.stop() # <--- FERMA LE MANI
         
         # Alternates between q1 and q2
         if self.current_q_index % 2 != 0:
@@ -73,7 +80,8 @@ class InterviewAPI:
         
         self.session_results.append({
             "question": self.current_question_text,
-            "audio_file": file_path
+            "audio_file": file_path,
+            "hand_general_time": tempo_gesticolazione # nuovo
         })
         print(f"    [ Mock audio attached: {file_path} ]")
 
@@ -85,14 +93,19 @@ class InterviewAPI:
     '''
     def start_recording(self):
         print("\n>>> [REC] Recording started! I am listening.")
-        max_duration = 300 # Max 5 minutes buffer
+        max_duration = 300 
         self.recording_array = sd.rec(int(max_duration * self.fs), samplerate=self.fs, channels=1, dtype='int16')
         self.start_time = time.time()
         self.is_recording = True
+        
+        self.hand_tracker_general.start() # <--- AGGIUNTO ANCHE QUI
 
     def stop_and_save_recording(self):
         print(">>> [STOP] Recording stopped.")
         sd.stop()
+        
+        tempo_gesticolazione = self.hand_tracker_general.stop() # <--- AGGIUNTO ANCHE QUI
+        
         duration = time.time() - self.start_time
         num_samples = int(duration * self.fs)
         trimmed = self.recording_array[:num_samples]
@@ -103,7 +116,8 @@ class InterviewAPI:
         
         self.session_results.append({
             "question": self.current_question_text,
-            "audio_file": file_path
+            "audio_file": file_path,
+            "hand_general_time": tempo_gesticolazione # <--- AGGIUNTO ANCHE QUI
         })
         print(f"    [ Audio saved: {file_path} ]")
     '''
