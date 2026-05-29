@@ -89,7 +89,7 @@
                         videoParla.style.opacity = 0;
                         
                         setTimeout(() => {
-                            window.pywebview.api.run_analysis().then(() => {
+                            window.pywebview.api.run_speech_analysis().then(() => {
                                 window.pywebview.api.close_window();
                             });
                         }, 500);
