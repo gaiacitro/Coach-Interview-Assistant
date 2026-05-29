@@ -82,3 +82,31 @@ class HandTrackerGeneral:
             self.thread.join(timeout=1.0)
         print(f">>>> [ANALISI VISIVA] Tracciamento mani fermato. Tempo: {self.tempo_mani:.1f}s")
         return self.tempo_mani
+    
+
+
+def process_and_print_gesture_analysis(session_results):
+    """
+    Prende i risultati della sessione e stampa il report 
+    relativo al comportamento visivo e alla gesticolazione.
+    """
+    print("\n" + "="*50)
+    print("GESTURE ANALYSIS IN PROGRESS... PLEASE WAIT")
+    print("="*50)
+    
+    for result in session_results:
+        question = result["question"]
+        tempo_mani = result.get("hand_time", 0.0)
+        
+        print(f"\nQUESTION: {question}")
+        print(f"  > Gesticulation Time: {tempo_mani:.1f} seconds")
+        
+        # Feedback comportamentale basato sul tempo di gesticolazione
+        if tempo_mani == 0:
+            print("      [Feedback: Nessun gesto rilevato. Usa le mani per enfatizzare i concetti importanti.]")
+        elif tempo_mani < 4.0:
+            print("      [Feedback: Gesticolazione moderata e controllata. Ottimo bilanciamento.]")
+        else:
+            print("      [Feedback: Gesticolazione molto energica. Attenzione a non distrarre l'intervistatore.]")
+            
+        print("-" * 30)

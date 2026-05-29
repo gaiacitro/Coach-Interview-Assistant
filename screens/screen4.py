@@ -9,7 +9,7 @@ from scipy.io.wavfile import write
 
 # Import the specific printing/analyzing function from our backend
 from speech import process_and_print_speech_analysis
-from hands.hand import HandTrackerGeneral # <--- NUOVO IMPORT
+from hands.hand import HandTrackerGeneral, process_and_print_gesture_analysis # <--- NUOVO IMPORT
 
 class InterviewAPI:
     def __init__(self, questions):
@@ -126,6 +126,8 @@ class InterviewAPI:
         # Delegate the entire analysis and console printing to speech.py
         process_and_print_speech_analysis(self.session_results)
 
+        # Avvia l'analisi delle mani
+        process_and_print_gesture_analysis(self.session_results)
         print("\nSESSION COMPLETED! The window will close automatically.")
         return "DONE"
 
