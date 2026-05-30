@@ -13,7 +13,7 @@ class Screen5(ctk.CTkScrollableFrame):
         ctk.CTkLabel(self, text="Interview Report", font=("Helvetica", 32, "bold"), text_color="black").pack(anchor="w", pady=(0, 20))
 
         # ---------------------------------------------------------
-        # MOCK DATA
+        # MOCK DATA (Per testare la grafica se non arrivano dati reali)
         # ---------------------------------------------------------
         if not data:
             data = [
@@ -22,7 +22,9 @@ class Screen5(ctk.CTkScrollableFrame):
                     "text": "well basically i am a student and uhm i like coding.",
                     "silence_count": 2,
                     "vocal_fillers": 1,
+                    "vocal_fillers_dict": {"uhm": 1},
                     "filler_words": 2,
+                    "filler_words_dict": {"basically": 1, "well": 1},
                     "tremor": 1.2
                 },
                 {
@@ -30,7 +32,9 @@ class Screen5(ctk.CTkScrollableFrame):
                     "text": "i think like my greatest weakness is basically public speaking.",
                     "silence_count": 1,
                     "vocal_fillers": 0,
+                    "vocal_fillers_dict": {},
                     "filler_words": 2,
+                    "filler_words_dict": {"like": 1, "basically": 1},
                     "tremor": 2.5
                 }
             ]
@@ -56,11 +60,34 @@ class Screen5(ctk.CTkScrollableFrame):
             speech_frame = ctk.CTkFrame(card, fg_color="transparent")
             speech_frame.pack(fill="x", padx=10, pady=5)
             
+            # --- NUOVA LOGICA A LISTA VERTICALE ---
+            v_count = item.get('vocal_fillers', 0)
+            v_dict = item.get('vocal_fillers_dict', {})
+            if v_count > 0:
+                # Crea la lista unendo ogni elemento con "a capo" (\n)
+                v_details = "\n".join([f"    - {word} [{count}]" for word, count in v_dict.items()])
+                v_string = f"{v_count}\n{v_details}"
+            else:
+                v_string = "0"
+
+            f_count = item.get('filler_words', 0)
+            f_dict = item.get('filler_words_dict', {})
+            if f_count > 0:
+                # Usa \n per andare a capo
+                f_details = "\n".join([f"    - {word} [{count}]" for word, count in f_dict.items()])
+                f_string = f"{f_count}\n{f_details}"
+            else:
+                f_string = "0"
+            # ---------------------------------------------
+
             ctk.CTkLabel(speech_frame, text="🎤 Speech Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
             ctk.CTkLabel(speech_frame, text=f"Long Pauses: {item.get('silence_count', 0)}", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(speech_frame, text=f"Vocal Fillers (uhm, er): {item.get('vocal_fillers', 0)}", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(speech_frame, text=f"Filler Words (like, so): {item.get('filler_words', 0)}", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(speech_frame, text=f"Voice Tremor (Jitter): {item.get('tremor', 0.0):.2f}%", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0))
+            
+            # ATTENZIONE: Aggiunto justify="left" per mantenere i trattini allineati a sinistra!
+            ctk.CTkLabel(speech_frame, text=f"Vocal Fillers: {v_string}", font=("Helvetica", 13), text_color="black", justify="left").grid(row=2, column=0, sticky="w", padx=(20,0), pady=2)
+            ctk.CTkLabel(speech_frame, text=f"Filler Words: {f_string}", font=("Helvetica", 13), text_color="black", justify="left").grid(row=3, column=0, sticky="w", padx=(20,0), pady=2)
+            
+            ctk.CTkLabel(speech_frame, text=f"Voice Tremor (Jitter): {item.get('tremor', 0.0):.2f}%", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0), pady=(5,0))
 
             cv_frame = ctk.CTkFrame(card, fg_color="transparent")
             cv_frame.pack(fill="x", padx=10, pady=(10, 5))
@@ -75,13 +102,10 @@ class Screen5(ctk.CTkScrollableFrame):
         # =========================================================
         ctk.CTkLabel(self, text="Overall Feedback", font=("Helvetica", 22, "bold"), text_color=PRINCIPAL_COLOR).pack(anchor="w", pady=(30, 5))
         
-        # Aumentato il border_width e cambiato border_color per chiudere bene la scatola
         feedback_frame = ctk.CTkFrame(self, fg_color="#F8F9FA", corner_radius=15, border_width=2, border_color="#CCCCCC")
         feedback_frame.pack(fill="x", pady=5, ipady=15, ipadx=15)
 
-        # --- LOGICA DEL FINAL SCORE CON BOX COLORATO ---
-        # Mock score per adesso, cambialo per vedere i diversi colori
-        final_score_value = 54 
+        final_score_value = 75 
         
         if final_score_value > 66:
             score_color = "#4CAF50" # Verde
@@ -95,10 +119,8 @@ class Screen5(ctk.CTkScrollableFrame):
 
         ctk.CTkLabel(score_container, text="Final Score: ", font=("Helvetica", 18, "bold"), text_color="black").pack(side="left")
         
-        # Il badge colorato del punteggio
         ctk.CTkLabel(score_container, text=f" {final_score_value} / 100 ", font=("Helvetica", 18, "bold"), 
                      fg_color=score_color, text_color="white", corner_radius=8).pack(side="left", padx=10)
-        # -----------------------------------------------
 
         # 2.B Questions to review
         ctk.CTkLabel(feedback_frame, text="Questions to Review:", font=("Helvetica", 16, "bold"), text_color="black").pack(anchor="w", padx=20)

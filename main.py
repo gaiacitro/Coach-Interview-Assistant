@@ -55,21 +55,20 @@ class InterviewApp(ctk.CTk):
             
             # Creiamo una funzione interna che si occupa di far partire l'IA
             def start_interview():
-                # 1. QUESTA È LA PARTE PESANTE: Importa l'IA mentre c'è ancora la scritta a schermo
                 from screens.screen4 import launch_webview_interview
                 
-                # 2. ADESSO CHE HA FINITO DI CARICARE, nascondiamo la finestra principale
                 self.withdraw()
                 self.clear_container()
                 
-                # 3. Lanciamo il video
-                launch_webview_interview(data)
+                # MODIFICA: Catturiamo il pacchetto dati in uscita dall'intervista!
+                final_report_data = launch_webview_interview(data)
                 
-                # 4. Quando il video si chiude, riapriamo la finestra e andiamo alla schermata 5
+                # Riapriamo la finestra
                 self.deiconify() 
-                self.show_screen("Screen5") 
+                
+                # MODIFICA: Passiamo i dati veri alla Schermata 5!
+                self.show_screen("Screen5", data=final_report_data) 
             
-            # Eseguiamo la funzione 100 millisecondi dopo aver mostrato la scritta
             self.after(100, start_interview)
             
         # =======================================================

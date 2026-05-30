@@ -61,11 +61,14 @@ def analyze_speech(audio_path):
 def process_and_print_speech_analysis(session_results):
     """
     Takes the list of session results, runs the AI analysis, 
-    and prints formatted output to the console.
+    prints formatted output to the console AND returns the data.
     """
     print("\n" + "="*50)
     print("SPEECH ANALYSIS IN PROGRESS... PLEASE WAIT")
     print("="*50)
+    
+    # NUOVO: Lista per raccogliere i dati da inviare alla Schermata 5
+    final_data = [] 
     
     for result in session_results:
         audio_path = result["audio_file"]
@@ -81,8 +84,8 @@ def process_and_print_speech_analysis(session_results):
             print(f"\nQUESTION: {question}")
             print(f"YOUR ANSWER: \"{analysis['text'].strip()}\"")
             print(f"  > Long Pauses: {analysis['silence_count']}")
-            print(f"  > Vocal Fillers: {v_count}")
-            print(f"  > Filler Words: {f_count}")
+            print(f"  > Vocal Fillers: {v_count} {analysis['vocal_fillers_found']}")
+            print(f"  > Filler Words: {f_count} {analysis['filler_found']}")
             print(f"  > Voice Tremor (Jitter): {tremor:.2f}%")
             
             if tremor < 1.0:
@@ -94,5 +97,29 @@ def process_and_print_speech_analysis(session_results):
                 
             print("-" * 30)
             
+            # --- MODIFICA: AGGIUNTI I DIZIONARI DELLE PAROLE ---
+            final_data.append({
+                "question": question,
+                "text": analysis['text'].strip(),
+                "silence_count": analysis['silence_count'],
+                "vocal_fillers": v_count,
+                "vocal_fillers_dict": analysis['vocal_fillers_found'], # <-- NUOVO
+                "filler_words": f_count,
+                "filler_words_dict": analysis['filler_found'],         # <-- NUOVO
+                "tremor": tremor
+            })
+            
         except Exception as e:
             print(f"Error during analysis of file {audio_path}: {e}")
+            # --- MODIFICA: AGGIUNTI I DIZIONARI VUOTI IN CASO DI ERRORE ---
+            final_data.append({
+                "question": question,
+                "text": "[Error: Audio transcription failed]",
+                "silence_count": 0, 
+                "vocal_fillers": 0, "vocal_fillers_dict": {},
+                "filler_words": 0, "filler_words_dict": {},
+                "tremor": 0.0
+            })
+
+    # NUOVO: Restituiamo il pacchetto completo!
+    return final_data

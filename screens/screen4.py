@@ -9,8 +9,8 @@ from scipy.io.wavfile import write
 
 # Import the specific printing/analyzing function from our backend
 from speech import process_and_print_speech_analysis
-from mod_detection_hands import HandTrackerGeneral, process_and_print_gesture_analysis # <--- NUOVO IMPORT
-from mod_hands_movements import FaceTouchTracker, process_and_print_insecurity_analysis
+from hands.mod_detection_hands import HandTrackerGeneral, process_and_print_gesture_analysis # <--- NUOVO IMPORT
+from hands.mod_hands_movements import FaceTouchTracker, process_and_print_insecurity_analysis
 
 
 class InterviewAPI:
@@ -129,12 +129,9 @@ class InterviewAPI:
     '''
 
     def run_speech_analysis(self):
-        # Delegate the entire analysis and console printing to speech.py
-        process_and_print_speech_analysis(self.session_results)
+        # NUOVO: Salviamo i dati restituiti dal file speech.py in una variabile della classe
+        self.final_report_data = process_and_print_speech_analysis(self.session_results)
 
-        # Avvia l'analisi delle mani
-        process_and_print_gesture_analysis(self.session_results)
-        process_and_print_insecurity_analysis(self.session_results)
         print("\nSESSION COMPLETED! The window will close automatically.")
         return "DONE"
 
@@ -145,9 +142,12 @@ class InterviewAPI:
 def launch_webview_interview(questions):
     api = InterviewAPI(questions)
     
-    # Looking for 'screen4.html' in the CURRENT directory (screens/)
     current_dir = os.path.dirname(os.path.abspath(__file__)) 
     html_file = os.path.join(current_dir, 'screen4.html')
     
     webview.create_window('Interview In Progress', url=html_file, js_api=api, width=1000, height=700)
     webview.start()
+    
+    # NUOVO: Quando webview.start() finisce (la finestra si chiude), restituiamo i dati salvati!
+    # Nota: usiamo getattr nel caso l'intervista sia stata chiusa bruscamente prima della fine.
+    return getattr(api, 'final_report_data', None)
