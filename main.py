@@ -38,20 +38,43 @@ class InterviewApp(ctk.CTk):
         elif screen_name == "Screen2Uni":
             Screen2_3(self.container, self, mode="uni")
             
-        elif screen_name == "Screen4":
-            self.withdraw() # Hides the main menu while interview runs
+        # =======================================================
+        # SCHERMATA DI CARICAMENTO & AVVIO INTERVISTA
+        # =======================================================
+        elif screen_name == "LoadingInterview":
+            loading_frame = ctk.CTkFrame(self.container, fg_color="transparent")
+            loading_frame.pack(expand=True, fill="both")
             
-            from screens.screen4 import launch_webview_interview
-            launch_webview_interview(data)
+            ctk.CTkLabel(loading_frame, text="Loading the interview setup...", 
+                         font=("Helvetica", 28, "bold"), text_color="black").pack(pady=(250, 10))
+            ctk.CTkLabel(loading_frame, text="Initializing AI models. This may take a few seconds", 
+                         font=("Helvetica", 16), text_color="gray").pack()
             
-            self.clear_container()
-            self.deiconify() # Shows the menu again
+            # Disegna la scritta a schermo
+            self.update()
             
-            # CHANGED: Now it goes to Screen 5 (Report) instead of Screen 1!
-            self.show_screen("Screen5") 
+            # Creiamo una funzione interna che si occupa di far partire l'IA
+            def start_interview():
+                # 1. QUESTA È LA PARTE PESANTE: Importa l'IA mentre c'è ancora la scritta a schermo
+                from screens.screen4 import launch_webview_interview
+                
+                # 2. ADESSO CHE HA FINITO DI CARICARE, nascondiamo la finestra principale
+                self.withdraw()
+                self.clear_container()
+                
+                # 3. Lanciamo il video
+                launch_webview_interview(data)
+                
+                # 4. Quando il video si chiude, riapriamo la finestra e andiamo alla schermata 5
+                self.deiconify() 
+                self.show_screen("Screen5") 
+            
+            # Eseguiamo la funzione 100 millisecondi dopo aver mostrato la scritta
+            self.after(100, start_interview)
+            
+        # =======================================================
             
         elif screen_name == "Screen5":
-            # Renders the final report screen
             Screen5(self.container, self, data=data)
             
         else:

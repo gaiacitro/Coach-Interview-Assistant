@@ -12,12 +12,13 @@
         .avatar-video {
             position: absolute; top: 0; left: 0;
             width: 100vw; height: 100vh; object-fit: cover;
+            transition: opacity 0.5s ease; /* Aggiunta una transizione per sfumare il video */
         }
 
         #video-zitto { z-index: 1; opacity: 1; }
         #video-parla { z-index: 2; opacity: 0; }
 
-        #top-bar { position: absolute; top: 10%; width: 100%; text-align: center; z-index: 10; }
+        #top-bar { position: absolute; top: 10%; width: 100%; text-align: center; z-index: 10; transition: top 0.5s; }
         
         .instruction-style {
             font-size: 32px; font-weight: bold; color: white;
@@ -33,6 +34,23 @@
 
         #bottom-bar { position: absolute; bottom: 5%; width: 100%; text-align: center; z-index: 10; }
         #info { font-size: 18px; color: #e2e8f0; text-shadow: 1px 1px 4px rgba(0,0,0,0.8); }
+
+        /* --- NUOVO: STILE PER L'ANIMAZIONE DI CARICAMENTO --- */
+        .loader {
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top: 6px solid #ABC07A; /* Il tuo colore principale */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Nascosto all'inizio */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -44,6 +62,7 @@
     </div>
 
     <div id="bottom-bar">
+        <div id="loader" class="loader"></div> 
         <div id="info">Press [SPACE] when you have finished answering to proceed to the next question</div>
     </div>
 
@@ -51,8 +70,7 @@
         const videoZitto = document.getElementById('video-zitto');
         const videoParla = document.getElementById('video-parla');
 
-        // Variabile per capire a che punto siamo dell'intervista
-        let interviewState = "active"; // Può essere: "active", "analyzing", "done"
+        let interviewState = "active"; 
 
         videoParla.currentTime = 0;
 
@@ -64,36 +82,39 @@
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space') {
                 
-                // 1. SE L'INTERVISTA È IN CORSO...
                 if (interviewState === "active") {
                     window.pywebview.api.get_next_question().then(function(response) {
                         
                         let qDiv = document.getElementById('question');
                         let infoDiv = document.getElementById('info');
+                        let loaderDiv = document.getElementById('loader');
+                        let topBar = document.getElementById('top-bar');
 
                         if (response === "END") {
-                            // Cambiamo stato! Blocchiamo lo spazio mentre fa i calcoli
+                            // 1. DISATTIVIAMO L'INTERVISTA
                             interviewState = "analyzing";
                             
+                            // 2. CREIAMO LA SCHERMATA DI CARICAMENTO
+                            topBar.style.top = "40%"; // Sposta il testo al centro dello schermo
                             qDiv.className = "instruction-style";
-                            qDiv.innerText = "Interview finished!";
-                            infoDiv.innerText = "Calculating results. Please check the console...";
+                            qDiv.innerText = "Calculating results...";
                             
+                            infoDiv.innerText = "Analyzing speech, pauses, and tremor...";
+                            loaderDiv.style.display = "block"; // Mostra l'animazione
+                            
+                            // Scurisce il video in background per dare risalto al caricamento
                             videoParla.style.opacity = 0;
+                            videoZitto.style.opacity = 0.4;
                             
-                            // Avviamo l'analisi
+                            // 3. AVVIAMO L'ANALISI E CHIUDIAMO IN AUTOMATICO
                             setTimeout(() => {
                                 window.pywebview.api.run_speech_analysis().then(() => {
-                                    // ANALISI FINITA!
-                                    interviewState = "done"; // Sblocchiamo la barra spaziatrice
-                                    
-                                    qDiv.innerText = "Analysis Complete!";
-                                    infoDiv.innerText = "Press [SPACE] to view your final report";
+                                    // Appena finisce di macinare i dati, si chiude da solo!
+                                    window.pywebview.api.close_window();
                                 });
                             }, 500);
                             
                         } else {
-                            // Nuova Domanda
                             qDiv.className = "question-style";
                             qDiv.innerText = response;
 
@@ -102,14 +123,7 @@
                         }
                     });
                 } 
-                
-                // 2. SE L'ANALISI È COMPLETATA...
-                else if (interviewState === "done") {
-                    // Solo in questo momento la finestra si chiude!
-                    window.pywebview.api.close_window();
-                }
-                
-                // (Se è "analyzing", la barra spaziatrice viene ignorata per non fare danni)
+                // Non serve più l'else-if "done" perché la finestra si chiude automaticamente!
             }
         });
     </script>

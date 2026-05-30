@@ -124,4 +124,6 @@ class Screen2_3(ctk.CTkFrame):
 
         # 5. Se è tutto ok, svuota eventuali errori vecchi e avvia l'intervista!
         self.error_label.configure(text="")
-        self.controller.show_screen("Screen4", data=final_questions)
+        
+        # CAMBIATO: Ora chiamiamo la schermata di caricamento, passandole le domande!
+        self.controller.show_screen("LoadingInterview", data=final_questions)
