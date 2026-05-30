@@ -9,7 +9,9 @@ from scipy.io.wavfile import write
 
 # Import the specific printing/analyzing function from our backend
 from speech import process_and_print_speech_analysis
-from hands.hand import HandTrackerGeneral, process_and_print_gesture_analysis # <--- NUOVO IMPORT
+from mod_detection_hands import HandTrackerGeneral, process_and_print_gesture_analysis # <--- NUOVO IMPORT
+from mod_hands_movements import FaceTouchTracker, process_and_print_insecurity_analysis
+
 
 class InterviewAPI:
     def __init__(self, questions):
@@ -27,6 +29,7 @@ class InterviewAPI:
         self.current_question_text = ""
         # Inizializziamo il tracker delle mani
         self.hand_tracker_general = HandTrackerGeneral()
+        self.face_touch_tracker = FaceTouchTracker()
 
     def get_next_question(self):
         # Cancel any pending 3-second timer if user presses space early
@@ -63,13 +66,15 @@ class InterviewAPI:
         self.start_time = time.time()
         self.is_recording = True
         self.hand_tracker_general.start() # <--- AVVIA IL TRACCIAMENTO MANI
+        self.face_touch_tracker.start()
 
     def stop_and_save_recording(self):
         print(">>> [STOP - TEST MODE] Simulation stopped.")
 
         # Ferma le mani e recupera il tempo speso a gesticolare
         tempo_gesticolazione = self.hand_tracker_general.stop() # <--- FERMA LE MANI
-        
+        tempo_tocco_viso = self.face_touch_tracker.stop()
+
         # Alternates between q1 and q2
         if self.current_q_index % 2 != 0:
             file_path = "response_q1.wav"
@@ -81,7 +86,8 @@ class InterviewAPI:
         self.session_results.append({
             "question": self.current_question_text,
             "audio_file": file_path,
-            "hand_general_time": tempo_gesticolazione # nuovo
+            "hand_general_time": tempo_gesticolazione, # nuovo
+            "face_touch_time": tempo_tocco_viso # <--- Salvi il dato qui
         })
         print(f"    [ Mock audio attached: {file_path} ]")
 
@@ -128,6 +134,7 @@ class InterviewAPI:
 
         # Avvia l'analisi delle mani
         process_and_print_gesture_analysis(self.session_results)
+        process_and_print_insecurity_analysis(self.session_results)
         print("\nSESSION COMPLETED! The window will close automatically.")
         return "DONE"
 
