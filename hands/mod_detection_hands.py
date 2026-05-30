@@ -96,7 +96,7 @@ def process_and_print_gesture_analysis(session_results):
     
     for result in session_results:
         question = result["question"]
-        tempo_mani = result.get("hand_time", 0.0)
+        tempo_mani = result.get("hand_general_time", 0.0)
         
         print(f"\nQUESTION: {question}")
         print(f"  > Gesticulation Time: {tempo_mani:.1f} seconds")

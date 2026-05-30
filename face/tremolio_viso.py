@@ -202,15 +202,15 @@ while running:
 
                 # 5. Logica comportamentale basata sui dati calibrati
                 stato_testa = "Frontale"
-                if pitch > 30: 
-                    stato_testa = "Pensa (Guarda in alto)"
-                elif pitch < -30:
+                if pitch > 13: 
+                    stato_testa = "Guarda in alto"
+                elif pitch < -18:
                     stato_testa = "Guarda in basso"
                     
-                if yaw > 30:
-                    stato_testa = "Guarda a Destra"
-                elif yaw < -30:
+                if yaw > 30 or roll <-20:
                     stato_testa = "Guarda a Sinistra"
+                elif yaw < -30 or roll>20 :
+                    stato_testa = "Guarda a Destra"
 
                 # Output grafico live
                 cv2.putText(frame, f"Stato: {stato_testa}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -231,4 +231,4 @@ detector_viso.close()
 
 #print("\n" + "="*50)
 #print(f" TEMPO TOTALE IN STATO DI INSTABILITA': {tempo_instabilita:.2f} secondi")
-#print("="*50 + "\n")
+#print("="*50 + "\n") 
