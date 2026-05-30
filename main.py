@@ -8,12 +8,17 @@ from screens.screen5 import Screen5  # <-- IMPORT SCREEN 5
 class InterviewApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-
         self.title("Interview Coach Assistant")
-        self.geometry("700x800")
+
         ctk.set_appearance_mode("light")
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
         
-        # Main container where all screens will be rendered
+        # 2. Forza le dimensioni della finestra partendo dall'angolo alto a sinistra (+0+0)
+        self.geometry(f"{screen_width}x{screen_height}+0+0")
+        
+        # 3. Usa un ritardo microscopico per applicare lo 'zoomed' solo DOPO la creazione
+        self.after(0, lambda: self.state('zoomed'))
         self.container = ctk.CTkFrame(self, fg_color="white")
         self.container.pack(fill="both", expand=True)
         

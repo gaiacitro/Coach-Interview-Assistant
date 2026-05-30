@@ -67,7 +67,6 @@ def process_and_print_speech_analysis(session_results):
     print("SPEECH ANALYSIS IN PROGRESS... PLEASE WAIT")
     print("="*50)
     
-    # NUOVO: Lista per raccogliere i dati da inviare alla Schermata 5
     final_data = [] 
     
     for result in session_results:
@@ -79,47 +78,50 @@ def process_and_print_speech_analysis(session_results):
             
             v_count = sum(analysis['vocal_fillers_found'].values())
             f_count = sum(analysis['filler_found'].values())
-            tremor = analysis['voice_tremor_percent']
+            
+            # --- MODIFICA: TRASFORMAZIONE JITTER IN SCALA 0-100 ---
+            tremor_percent = analysis['voice_tremor_percent']
+            # Il 3.0% di jitter viene considerato il massimo (100).
+            # Usiamo min(100, ...) per evitare che vada oltre il 100 se il jitter è estremo.
+            tremor_100 = min(100, int((tremor_percent / 3.0) * 100))
             
             print(f"\nQUESTION: {question}")
             print(f"YOUR ANSWER: \"{analysis['text'].strip()}\"")
             print(f"  > Long Pauses: {analysis['silence_count']}")
             print(f"  > Vocal Fillers: {v_count} {analysis['vocal_fillers_found']}")
             print(f"  > Filler Words: {f_count} {analysis['filler_found']}")
-            print(f"  > Voice Tremor (Jitter): {tremor:.2f}%")
+            print(f"  > Voice Tremor: {tremor_100}/100")
             
-            if tremor < 1.0:
+            # Aggiorniamo i range del feedback in base alla nuova scala
+            if tremor_100 < 33:
                 print("      [Feedback: Very steady and confident voice]")
-            elif 1.0 <= tremor <= 2.0:
+            elif 33 <= tremor_100 <= 66:
                 print("      [Feedback: Slight instability, natural for an interview]")
             else:
                 print("      [Feedback: High tremor detected (Tense or nervous voice)]")
                 
             print("-" * 30)
             
-            # --- MODIFICA: AGGIUNTI I DIZIONARI DELLE PAROLE ---
             final_data.append({
                 "question": question,
                 "text": analysis['text'].strip(),
                 "silence_count": analysis['silence_count'],
                 "vocal_fillers": v_count,
-                "vocal_fillers_dict": analysis['vocal_fillers_found'], # <-- NUOVO
+                "vocal_fillers_dict": analysis['vocal_fillers_found'], 
                 "filler_words": f_count,
-                "filler_words_dict": analysis['filler_found'],         # <-- NUOVO
-                "tremor": tremor
+                "filler_words_dict": analysis['filler_found'],         
+                "tremor": tremor_100 # Salviamo il valore formattato 0-100
             })
             
         except Exception as e:
             print(f"Error during analysis of file {audio_path}: {e}")
-            # --- MODIFICA: AGGIUNTI I DIZIONARI VUOTI IN CASO DI ERRORE ---
             final_data.append({
                 "question": question,
                 "text": "[Error: Audio transcription failed]",
                 "silence_count": 0, 
                 "vocal_fillers": 0, "vocal_fillers_dict": {},
                 "filler_words": 0, "filler_words_dict": {},
-                "tremor": 0.0
+                "tremor": 0 # Tremor a 0 in caso di errore
             })
 
-    # NUOVO: Restituiamo il pacchetto completo!
     return final_data

@@ -145,9 +145,18 @@ def launch_webview_interview(questions):
     current_dir = os.path.dirname(os.path.abspath(__file__)) 
     html_file = os.path.join(current_dir, 'screen4.html')
     
-    webview.create_window('Interview In Progress', url=html_file, js_api=api, width=1000, height=700)
+    # MODIFICA QUI: Mettiamo larghezza e altezza grandissime per sicurezza + maximized=True
+    webview.create_window(
+        'Interview In Progress', 
+        url=html_file, 
+        js_api=api, 
+        width=1920, 
+        height=1080,
+        maximized=True
+    )
+    
     webview.start()
     
-    # NUOVO: Quando webview.start() finisce (la finestra si chiude), restituiamo i dati salvati!
+    # Quando webview.start() finisce (la finestra si chiude), restituiamo i dati salvati!
     # Nota: usiamo getattr nel caso l'intervista sia stata chiusa bruscamente prima della fine.
     return getattr(api, 'final_report_data', None)
