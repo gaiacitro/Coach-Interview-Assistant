@@ -256,14 +256,21 @@ class UnifiedVisionTracker:
         self.running = False
         if self.thread:
             self.thread.join(timeout=1.0)
-        return (
-            self.tempo_gesticolazione,
-            self.tempo_mani_sopra_mento,
-            self.tempo_sovrapposizione_box,
-            self.tempo_occhi_girati,
-            self.tempo_instabilita_viso,
-            self.tempo_testa_spostata # Ritorniamo 6 valori
-        )
+            
+        # Impacchettiamo i dati CV direttamente qui!
+        cv_data_dict = {
+            "gaze_face": {
+                "eye_gaze_time": self.tempo_occhi_girati,
+                "face_tremor_time": self.tempo_instabilita_viso,
+                "head_movement_time": self.tempo_testa_spostata
+            },
+            "hand_gesture": {
+                "hand_general_time": self.tempo_gesticolazione,
+                "face_touch_time": self.tempo_mani_sopra_mento,
+                "face_overlap_time": self.tempo_sovrapposizione_box
+            }
+        }
+        return cv_data_dict
 
 
 def process_and_print_vision_report(session_results):

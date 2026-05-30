@@ -79,10 +79,7 @@ def process_and_print_speech_analysis(session_results):
             v_count = sum(analysis['vocal_fillers_found'].values())
             f_count = sum(analysis['filler_found'].values())
             
-            # --- MODIFICA: TRASFORMAZIONE JITTER IN SCALA 0-100 ---
             tremor_percent = analysis['voice_tremor_percent']
-            # Il 3.0% di jitter viene considerato il massimo (100).
-            # Usiamo min(100, ...) per evitare che vada oltre il 100 se il jitter è estremo.
             tremor_100 = min(100, int((tremor_percent / 3.0) * 100))
             
             print(f"\nQUESTION: {question}")
@@ -92,7 +89,6 @@ def process_and_print_speech_analysis(session_results):
             print(f"  > Filler Words: {f_count} {analysis['filler_found']}")
             print(f"  > Voice Tremor: {tremor_100}/100")
             
-            # Aggiorniamo i range del feedback in base alla nuova scala
             if tremor_100 < 33:
                 print("      [Feedback: Very steady and confident voice]")
             elif 33 <= tremor_100 <= 66:
@@ -102,26 +98,29 @@ def process_and_print_speech_analysis(session_results):
                 
             print("-" * 30)
             
-            final_data.append({
-                "question": question,
-                "text": analysis['text'].strip(),
-                "silence_count": analysis['silence_count'],
-                "vocal_fillers": v_count,
-                "vocal_fillers_dict": analysis['vocal_fillers_found'], 
-                "filler_words": f_count,
-                "filler_words_dict": analysis['filler_found'],         
-                "tremor": tremor_100 # Salviamo il valore formattato 0-100
-            })
+            # --- LA MAGIA: Arricchiamo il dizionario "result" esistente ---
+            result["text"] = analysis['text'].strip()
+            result["silence_count"] = analysis['silence_count']
+            result["vocal_fillers"] = v_count
+            result["vocal_fillers_dict"] = analysis['vocal_fillers_found']
+            result["filler_words"] = f_count
+            result["filler_words_dict"] = analysis['filler_found']
+            result["tremor"] = tremor_100
+            
+            final_data.append(result)
             
         except Exception as e:
             print(f"Error during analysis of file {audio_path}: {e}")
-            final_data.append({
-                "question": question,
-                "text": "[Error: Audio transcription failed]",
-                "silence_count": 0, 
-                "vocal_fillers": 0, "vocal_fillers_dict": {},
-                "filler_words": 0, "filler_words_dict": {},
-                "tremor": 0 # Tremor a 0 in caso di errore
-            })
+            
+            # Arricchiamo con valori a 0 in caso di errore
+            result["text"] = "[Error: Audio transcription failed]"
+            result["silence_count"] = 0
+            result["vocal_fillers"] = 0
+            result["vocal_fillers_dict"] = {}
+            result["filler_words"] = 0
+            result["filler_words_dict"] = {}
+            result["tremor"] = 0
+            
+            final_data.append(result)
 
     return final_data

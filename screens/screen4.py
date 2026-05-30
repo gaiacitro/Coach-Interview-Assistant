@@ -70,8 +70,8 @@ class InterviewAPI:
     def stop_and_save_recording(self):
         print(">>> [STOP - TEST MODE] Simulation stopped.")
 
-        # SPACCHETTIAMO I 6 VALORI RITORNATI DAL NUOVO BACKEND
-        t_gesti, t_mento, t_overlap, t_sguardo, t_tremolio, t_testa = self.vision_tracker.stop()
+        # Riceviamo il dizionario già impacchettato dal backend visivo
+        cv_data_dict = self.vision_tracker.stop()
 
         if self.current_q_index % 2 != 0:
             file_path = "response_q1.wav"
@@ -80,15 +80,11 @@ class InterviewAPI:
             
         self.is_recording = False
         
+        # Salviamo audio, domanda e i dati CV strutturati
         self.session_results.append({
             "question": self.current_question_text,
             "audio_file": file_path,
-            "hand_general_time": t_gesti,
-            "face_touch_time": t_mento,
-            "face_overlap_time": t_overlap,
-            "eye_gaze_time": t_sguardo,
-            "face_tremor_time": t_tremolio,
-            "head_movement_time": t_testa # <--- SALVIAMO LA SESTA MODIFICA QUI
+            "cv_data": cv_data_dict  # <-- Inserito in modo pulitissimo
         })
         print(f"    [ Mock audio attached: {file_path} ]")
     # =================================================================
@@ -103,14 +99,14 @@ class InterviewAPI:
         self.is_recording = True
         
         # Avvia l'analisi visiva anche in modalità reale
-        self.vision_tracker.start() # <--- AGGIUNTO QUI
+        self.vision_tracker.start() 
 
     def stop_and_save_recording(self):
         print(">>> [STOP] Recording stopped.")
         sd.stop()
         
-        # Ferma la webcam e recupera i dati
-        t_gesti, t_mento, t_overlap = self.vision_tracker.stop() # <--- AGGIUNTO QUI
+        # Riceviamo il dizionario già impacchettato dal backend visivo!
+        cv_data_dict = self.vision_tracker.stop()
         
         duration = time.time() - self.start_time
         num_samples = int(duration * self.fs)
@@ -120,12 +116,11 @@ class InterviewAPI:
         
         self.is_recording = False
         
+        # Salviamo audio, domanda e i dati CV strutturati
         self.session_results.append({
             "question": self.current_question_text,
             "audio_file": file_path,
-            "hand_general_time": t_gesti,
-            "face_touch_time": t_mento,
-            "face_overlap_time": t_overlap # <--- AGGIUNTO QUI
+            "cv_data": cv_data_dict  # <--- Inserito qui in modo pulito
         })
         print(f"    [ Audio saved: {file_path} ]")
     '''

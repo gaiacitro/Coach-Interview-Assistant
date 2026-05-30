@@ -31,7 +31,20 @@ class Screen5(ctk.CTkScrollableFrame):
                     "vocal_fillers_dict": {"uhm": 1},
                     "filler_words": 2,
                     "filler_words_dict": {"basically": 1, "well": 1},
-                    "tremor": 1.2
+                    "tremor": 1.2,
+                    # AGGIUNTA DEI DATI DELLA COMPUTER VISION:
+                    "cv_data": {
+                        "gaze_face": {
+                            "eye_gaze_time": 2.5,
+                            "face_tremor_time": 0.0,
+                            "head_movement_time": 1.2
+                        },
+                        "hand_gesture": {
+                            "hand_general_time": 5.4,
+                            "face_touch_time": 0.0,
+                            "face_overlap_time": 0.0
+                        }
+                    }
                 },
                 {
                     "question": "What is your greatest weakness?",
@@ -41,7 +54,20 @@ class Screen5(ctk.CTkScrollableFrame):
                     "vocal_fillers_dict": {},
                     "filler_words": 2,
                     "filler_words_dict": {"like": 1, "basically": 1},
-                    "tremor": 2.5
+                    "tremor": 2.5,
+                    # AGGIUNTA DEI DATI DELLA COMPUTER VISION:
+                    "cv_data": {
+                        "gaze_face": {
+                            "eye_gaze_time": 4.1,
+                            "face_tremor_time": 3.2,
+                            "head_movement_time": 2.8
+                        },
+                        "hand_gesture": {
+                            "hand_general_time": 2.1,
+                            "face_touch_time": 1.5,
+                            "face_overlap_time": 0.8
+                        }
+                    }
                 }
             ]
 
@@ -90,13 +116,34 @@ class Screen5(ctk.CTkScrollableFrame):
             
             ctk.CTkLabel(speech_frame, text=f"Voice Tremor: {item.get('tremor', 0)} / 100", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0), pady=(5,0))
 
-            cv_frame = ctk.CTkFrame(card, fg_color="transparent")
-            cv_frame.pack(fill="x", padx=10, pady=(10, 5))
-            
-            ctk.CTkLabel(cv_frame, text="👁️ Computer Vision Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
-            ctk.CTkLabel(cv_frame, text="[Face Tracking data will go here]", font=("Helvetica", 13), text_color="gray").grid(row=1, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(cv_frame, text="[Hand Tracking data will go here]", font=("Helvetica", 13), text_color="gray").grid(row=2, column=0, sticky="w", padx=(20,0))
+            # Recupero i dati della CV per questa domanda (o dizionari vuoti se non ci sono)
+            cv_data = item.get("cv_data", {})
+            cv_face = cv_data.get("gaze_face", {})
+            cv_hand = cv_data.get("hand_gesture", {})
 
+            # ==========================================
+            # 👁️ GAZE AND FACE ANALYSIS
+            # ==========================================
+            face_frame = ctk.CTkFrame(card, fg_color="transparent")
+            face_frame.pack(fill="x", padx=10, pady=(10, 5))
+            
+            ctk.CTkLabel(face_frame, text="👁️ Gaze and Face Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
+            
+            ctk.CTkLabel(face_frame, text=f"Eyes Distracted Time: {cv_face.get('eye_gaze_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(face_frame, text=f"Face Tremor/Tension Time: {cv_face.get('face_tremor_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(face_frame, text=f"Head Moved/Turned Time: {cv_face.get('head_movement_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
+
+            # ==========================================
+            # 🖐️ HAND AND GESTURE ANALYSIS
+            # ==========================================
+            hand_frame = ctk.CTkFrame(card, fg_color="transparent")
+            hand_frame.pack(fill="x", padx=10, pady=(5, 10))
+            
+            ctk.CTkLabel(hand_frame, text="🖐️ Hand and Gesture Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
+            
+            ctk.CTkLabel(hand_frame, text=f"Gesticulation Time: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(hand_frame, text=f"Hands Above Chin Time: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(hand_frame, text=f"Face Overlap Time (Box): {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
 
         # =========================================================
         # 2. SECOND PART: OVERALL FEEDBACK AND SCORE
