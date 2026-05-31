@@ -35,14 +35,19 @@ class Screen5(ctk.CTkScrollableFrame):
                     # AGGIUNTA DEI DATI DELLA COMPUTER VISION:
                     "cv_data": {
                         "gaze_face": {
-                            "eye_gaze_time": 2.5,
-                            "face_tremor_time": 0.0,
-                            "head_movement_time": 1.2
+                            "tempo_totale_risposta": 43.3,
+                            "eye_gaze_time": 4.1,
+                            "face_tremor_time": 3.2,
+                            "head_movement_time": 2.8,
+                            "head_down": 3.5,
+                            "head_total":2.6
                         },
                         "hand_gesture": {
-                            "hand_general_time": 5.4,
-                            "face_touch_time": 0.0,
-                            "face_overlap_time": 0.0
+                            "tempo_totale_risposta": 43.3,
+                            "hand_general_time": 2.1,
+                            "face_touch_time": 1.5,
+                            "face_overlap_time": 0.8,
+                            "hand_gravity": 5.4
                         }
                     }
                 },
@@ -58,14 +63,19 @@ class Screen5(ctk.CTkScrollableFrame):
                     # AGGIUNTA DEI DATI DELLA COMPUTER VISION:
                     "cv_data": {
                         "gaze_face": {
+                            "tempo_totale_risposta": 43.3,
                             "eye_gaze_time": 4.1,
                             "face_tremor_time": 3.2,
-                            "head_movement_time": 2.8
+                            "head_movement_time": 2.8,
+                            "head_down": 3.5,
+                            "head_total":2.6
                         },
                         "hand_gesture": {
+                            "tempo_totale_risposta": 43.3,
                             "hand_general_time": 2.1,
                             "face_touch_time": 1.5,
-                            "face_overlap_time": 0.8
+                            "face_overlap_time": 0.8,
+                            "hand_gravity": 5.4
                         }
                     }
                 }

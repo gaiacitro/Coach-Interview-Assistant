@@ -170,14 +170,20 @@ while running:
                 # aggiustamento ora che partono esattamente da 0.
                 if pitch > 13: 
                     stato_testa = "Guarda in basso"
+                elif pitch > 7: 
+                    if yaw > 30 or roll <-20:
+                        stato_testa = "Guarda in Basso"
+                    elif yaw < -30 or roll>20 :
+                        stato_testa = "Guarda in Basso"
                 elif pitch < -18:
                     stato_testa = "Guarda in alto"
-                    
+
+                """
                 if yaw > 30 or roll <-20:
                     stato_testa = "Guarda a Sinistra"
                 elif yaw < -30 or roll>20 :
                     stato_testa = "Guarda a Destra"
-
+                """
             
 
                 # Interfaccia a regime

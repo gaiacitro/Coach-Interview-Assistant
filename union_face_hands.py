@@ -68,12 +68,14 @@ class UnifiedVisionTracker:
         self.baseline_roll = 0
 
         # --- ORA ABBIAMO 6 CRONOMETRI ---
+        self.tempo_totale = 0.0 
         self.tempo_gesticolazione = 0.0
         self.tempo_mani_sopra_mento = 0.0
         self.tempo_sovrapposizione_box = 0.0
         self.tempo_occhi_girati = 0.0
         self.tempo_instabilita_viso = 0.0
         self.tempo_testa_spostata = 0.0 # <--- NUOVA METRICA DA FACE_MOVEMENTS
+        self.tempo_bassa_testa=0.0
 
     def _check_models(self):
         if not os.path.exists(self.modello_mani_path):
@@ -93,7 +95,7 @@ class UnifiedVisionTracker:
             successo, frame = cap.read()
             if not successo:
                 continue
-
+            self.tempo_totale += delta_time # tempo totale calcolo
             tempo_attuale = time.time()
             delta_time = tempo_attuale - tempo_precedente
             tempo_precedente = tempo_attuale
@@ -193,20 +195,27 @@ class UnifiedVisionTracker:
                                 self.tempo_instabilita_viso += delta_time
 
                         # 5. NUOVA LOGICA COMPORTAMENTALE ORIENTAMENTO TESTA (Le tue nuove soglie esatte)
-                        stato_testa = "Frontale"
                         if pitch > 13: 
-                            stato_testa = "Guarda in alto"
+                            stato_testa = "Guarda in Basso"
+                        elif pitch > 7: 
+                            if yaw > 30 or roll <-20:
+                                stato_testa = "Guarda in Basso"
+                            elif yaw < -30 or roll>20 :
+                                stato_testa = "Guarda in Basso"
                         elif pitch < -18:
-                            stato_testa = "Guarda in basso"
-                            
-                        if yaw > 30 or roll < -20:
-                            stato_testa = "Guarda a Sinistra"
-                        elif yaw < -30 or roll > 20:
-                            stato_testa = "Guarda a Destra"
+                            stato_testa = "Guarda in alto"
+                        elif yaw > 30 or roll <-20:
+                                stato_testa = "Guarda a Sinistra"
+                        elif yaw < -30 or roll>20 :
+                                stato_testa = "Guarda a Destra"
+
 
                         # Se lo stato della testa non è più frontale, accumulo il tempo
                         if stato_testa != "Frontale":
                             self.tempo_testa_spostata += delta_time
+
+                        if stato_testa== "Guarda in Basso":
+                            self.tempo_bassa_testa+=delta_time
 
             # Controllo geometrico delle mani
             if risultati_mani.hand_landmarks:
@@ -235,6 +244,8 @@ class UnifiedVisionTracker:
         self.tempo_occhi_girati = 0.0
         self.tempo_instabilita_viso = 0.0
         self.tempo_testa_spostata = 0.0 # Reset
+        self.tempo_totale = 0.0 
+        self.tempo_bassa_testa=0.0
         
         self.pitch_sum = 0
         self.yaw_sum = 0
@@ -260,14 +271,20 @@ class UnifiedVisionTracker:
         # Impacchettiamo i dati CV direttamente qui!
         cv_data_dict = {
             "gaze_face": {
+                "tempo_totale_risposta": self.tempo_totale,
                 "eye_gaze_time": self.tempo_occhi_girati,
                 "face_tremor_time": self.tempo_instabilita_viso,
-                "head_movement_time": self.tempo_testa_spostata
+                "head_movement_time": self.tempo_testa_spostata,
+                "head_down": self.tempo_bassa_testa,
+                "head_total":( np.exp(0.6*self.tempo_bassa_testa)+0.5*self.tempo_testa_spostata)/self.tempo_totale
             },
             "hand_gesture": {
+                "tempo_totale_risposta": self.tempo_totale,
                 "hand_general_time": self.tempo_gesticolazione,
-                "face_touch_time": self.tempo_mani_sopra_mento,
-                "face_overlap_time": self.tempo_sovrapposizione_box
+                "face_touch_time": self.tempo_mani_sopra_mento-self.tempo_sovrapposizione_box,
+                "face_overlap_time": self.tempo_sovrapposizione_box,
+                "hand_gravity":( 0.6*(self.tempo_gesticolazione-self.tempo_mani_sopra_mento-self.tempo_sovrapposizione_box) + 
+                                0.8*(self.tempo_mani_sopra_mento-self.tempo_sovrapposizione_box) + np.exp(0.6*self.tempo_sovrapposizione_box)-1 )/self.tempo_totale
             }
         }
         return cv_data_dict
@@ -283,6 +300,7 @@ def process_and_print_vision_report(session_results):
         print(f"  > Gesticulation Time: {result.get('hand_general_time', 0.0):.1f}s")
         print(f"  > Hands Above Chin Time: {result.get('face_touch_time', 0.0):.1f}s")
         print(f"  > Face Overlap Time (Box): {result.get('face_overlap_time', 0.0):.1f}s")
+        print(f"  > Hand Gesture Gravity: {result.get('hand_gravity', 0.0):.1f}s")
         print(f"  > Eyes Distracted Time: {result.get('eye_gaze_time', 0.0):.1f}s")
         print(f"  > Face Tremor/Tension Time: {result.get('face_tremor_time', 0.0):.1f}s")
         print(f"  > Head Moved/Turned Time: {result.get('head_movement_time', 0.0):.1f}s") # <--- AGGIUNTO NEL REPORT
