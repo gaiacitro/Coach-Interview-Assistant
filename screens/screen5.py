@@ -1,200 +1,188 @@
 # screens/screen5.py
 import customtkinter as ctk
-from config import PRINCIPAL_COLOR, SECONDARY_COLOR
+from utils import generate_report_text  
+from utils import DEFAULT_INTERVIEW_DATA  #dati fittizzi per il mock del report, se non arrivano dati reali dall'intervista
+from tkinter import filedialog
+from config import (
+    CARD_BG, 
+    CARD_BORDER, 
+    TEXT_GREEN,
+    TEXT_SUB,
+    BTN_BG, 
+    BTN_TEXT, 
+    BTN_HOVER,
+    APP_FONT
+)
 
 class Screen5(ctk.CTkScrollableFrame):
     def __init__(self, parent, controller, data=None):
-        # 1. Il frame scorrevole prende di nuovo TUTTO lo schermo (così la barra di scorrimento va a destra)
         super().__init__(parent, fg_color="transparent")
         self.controller = controller
-        self.pack(expand=True, fill="both")
+        
+        self.pack(expand=True, fill="both") 
+        
+        # DEFINIZIONE DEI FONT
+        font_titolo_grande = ctk.CTkFont(family=APP_FONT, size=34, weight="bold")
+        font_titolo_sezione = ctk.CTkFont(family=APP_FONT, size=24, weight="bold")
+        font_domanda = ctk.CTkFont(family=APP_FONT, size=18, weight="bold")
+        font_risposta = ctk.CTkFont(family=APP_FONT, size=15, slant="italic")
+        font_titolo_box = ctk.CTkFont(family=APP_FONT, size=16, weight="bold")
+        font_normale = ctk.CTkFont(family=APP_FONT, size=14)
+        font_bottoni = ctk.CTkFont(family=APP_FONT, size=16, weight="bold")
 
-        # =========================================================
-        # 2. IL TRUCCO: Creiamo una colonna centrale invisibile!
-        # Tkinter la piazzerà automaticamente al centro esatto dello schermo.
-        # =========================================================
-        center_frame = ctk.CTkFrame(self, fg_color="transparent")
-        center_frame.pack(pady=30, padx=20)
+        # CONTAINER INTERNO (Card principale)
+        center_frame = ctk.CTkFrame(self, 
+                                    fg_color=CARD_BG, 
+                                    border_color=CARD_BORDER, 
+                                    border_width=5, 
+                                    corner_radius=20)
+        center_frame.pack(pady=40, padx=40, ipadx=40, ipady=40, expand=True, fill="both")
 
-        # DA QUI IN POI: Attacchiamo tutto a "center_frame" invece che a "self"!
+        # TITLE SECTION 
+        # Modifica 1: Aggiunto pady=40 anche sopra per non tagliare il bordo della card!
+        ctk.CTkLabel(center_frame, text="Interview Report", font=font_titolo_grande, text_color=TEXT_GREEN).pack(anchor="center", pady=(40, 40))
 
-        # TITLE SECTION
-        ctk.CTkLabel(center_frame, text="Interview Report", font=("Helvetica", 32, "bold"), text_color="black").pack(anchor="w", pady=(0, 20))
-
+        # Se non arrivano dati reali dall'intervista, carica il mock dal file utils
         if not data:
-            data = [
-                {
-                    "question": "Tell me about yourself.",
-                    "text": "well basically i am a student and uhm i like coding.",
-                    "silence_count": 2,
-                    "vocal_fillers": 1,
-                    "vocal_fillers_dict": {"uhm": 1},
-                    "filler_words": 2,
-                    "filler_words_dict": {"basically": 1, "well": 1},
-                    "tremor": 1.2,
-                    # AGGIUNTA DEI DATI DELLA COMPUTER VISION:
-                    "cv_data": {
-                        "gaze_face": {
-                            "tempo_totale_risposta": 43.3,
-                            "eye_gaze_time": 4.1,
-                            "face_tremor_time": 3.2,
-                            "head_movement_time": 2.8,
-                            "head_down": 3.5,
-                            "head_total":2.6
-                        },
-                        "hand_gesture": {
-                            "tempo_totale_risposta": 43.3,
-                            "hand_general_time": 2.1,
-                            "face_touch_time": 1.5,
-                            "face_overlap_time": 0.8,
-                            "hand_gravity": 5.4
-                        }
-                    }
-                },
-                {
-                    "question": "What is your greatest weakness?",
-                    "text": "i think like my greatest weakness is basically public speaking.",
-                    "silence_count": 1,
-                    "vocal_fillers": 0,
-                    "vocal_fillers_dict": {},
-                    "filler_words": 2,
-                    "filler_words_dict": {"like": 1, "basically": 1},
-                    "tremor": 2.5,
-                    # AGGIUNTA DEI DATI DELLA COMPUTER VISION:
-                    "cv_data": {
-                        "gaze_face": {
-                            "tempo_totale_risposta": 43.3,
-                            "eye_gaze_time": 4.1,
-                            "face_tremor_time": 3.2,
-                            "head_movement_time": 2.8,
-                            "head_down": 3.5,
-                            "head_total":2.6
-                        },
-                        "hand_gesture": {
-                            "tempo_totale_risposta": 43.3,
-                            "hand_general_time": 2.1,
-                            "face_touch_time": 1.5,
-                            "face_overlap_time": 0.8,
-                            "hand_gravity": 5.4
-                        }
-                    }
-                }
-            ]
+            data = DEFAULT_INTERVIEW_DATA
 
         # =========================================================
         # 1. FIRST PART: QUESTION BY QUESTION REPORT
         # =========================================================
-        ctk.CTkLabel(center_frame, text="Questions & Answers Analysis", font=("Helvetica", 22, "bold"), text_color=PRINCIPAL_COLOR).pack(anchor="w", pady=(10, 10))
+        ctk.CTkLabel(center_frame, text="Questions & Answers Analysis", font=font_titolo_sezione, text_color=TEXT_SUB).pack(anchor="w", pady=(10, 20), padx=20)
 
         for idx, item in enumerate(data):
-            card = ctk.CTkFrame(center_frame, fg_color="#F8F9FA", corner_radius=15, border_width=1, border_color="#E0E0E0")
-            card.pack(fill="x", pady=10, ipady=10, ipadx=10)
+            card = ctk.CTkFrame(center_frame, fg_color="white", corner_radius=15, border_width=2, border_color="#E8ECE8")
+            card.pack(fill="x", pady=15, padx=20, ipady=15, ipadx=15)
 
-            ctk.CTkLabel(card, text=f"Q{idx+1}: {item['question']}", font=("Helvetica", 16, "bold"), text_color="black", wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(10, 5))
+            ctk.CTkLabel(card, text=f"Q{idx+1}: {item['question']}", font=font_domanda, text_color=TEXT_GREEN, wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(10, 5))
             
-            ctk.CTkLabel(card, text=f"Your answer: \"{item['text']}\"", font=("Helvetica", 14, "italic"), text_color="#555555", wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(0, 5))
+            ctk.CTkLabel(card, text=f"Your answer: \"{item['text']}\"", font=font_risposta, text_color="#555555", wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(0, 15))
 
-            ctk.CTkButton(card, text="Reformulate", font=("Helvetica", 13, "bold"), 
-                          fg_color=PRINCIPAL_COLOR, text_color="black", hover_color=SECONDARY_COLOR, 
-                          width=100, height=30, corner_radius=8,
-                          command=lambda q=idx: print(f"Reformulating question {q+1}...")).pack(anchor="w", padx=10, pady=(0, 15))
+            ctk.CTkButton(card, text="Reformulate", font=font_bottoni, 
+                          fg_color=BTN_BG, text_color=BTN_TEXT, hover_color=BTN_HOVER, 
+                          width=140, height=35, corner_radius=10,
+                          command=lambda q=idx: print(f"Reformulating question {q+1}...")).pack(anchor="w", padx=10, pady=(0, 20))
 
-            speech_frame = ctk.CTkFrame(card, fg_color="transparent")
-            speech_frame.pack(fill="x", padx=10, pady=5)
-            
+            stats_container = ctk.CTkFrame(card, fg_color="transparent")
+            stats_container.pack(fill="x", padx=10, pady=5)
+
             v_count = item.get('vocal_fillers', 0)
             v_dict = item.get('vocal_fillers_dict', {})
-            if v_count > 0:
-                v_details = "\n".join([f"    - {word} [{count}]" for word, count in v_dict.items()])
-                v_string = f"{v_count}\n{v_details}"
-            else:
-                v_string = "0"
+            v_string = f"{v_count}\n" + "\n".join([f"    - {w} [{c}]" for w, c in v_dict.items()]) if v_count > 0 else "0"
 
             f_count = item.get('filler_words', 0)
             f_dict = item.get('filler_words_dict', {})
-            if f_count > 0:
-                f_details = "\n".join([f"    - {word} [{count}]" for word, count in f_dict.items()])
-                f_string = f"{f_count}\n{f_details}"
-            else:
-                f_string = "0"
+            f_string = f"{f_count}\n" + "\n".join([f"    - {w} [{c}]" for w, c in f_dict.items()]) if f_count > 0 else "0"
 
-            ctk.CTkLabel(speech_frame, text="🎤 Speech Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
-            ctk.CTkLabel(speech_frame, text=f"Long Pauses: {item.get('silence_count', 0)}", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
-            
-            ctk.CTkLabel(speech_frame, text=f"Vocal Fillers: {v_string}", font=("Helvetica", 13), text_color="black", justify="left").grid(row=2, column=0, sticky="w", padx=(20,0), pady=2)
-            ctk.CTkLabel(speech_frame, text=f"Filler Words: {f_string}", font=("Helvetica", 13), text_color="black", justify="left").grid(row=3, column=0, sticky="w", padx=(20,0), pady=2)
-            
-            ctk.CTkLabel(speech_frame, text=f"Voice Tremor: {item.get('tremor', 0)} / 100", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0), pady=(5,0))
-
-            # Recupero i dati della CV per questa domanda (o dizionari vuoti se non ci sono)
+            # Modifica 2: Aggiunto pady=5 ai frame delle statistiche così hanno spazio per le curve
+            # ---- SPEECH FRAME ----
             cv_data = item.get("cv_data", {})
             cv_face = cv_data.get("gaze_face", {})
             cv_hand = cv_data.get("hand_gesture", {})
 
-            # ==========================================
-            # 👁️ GAZE AND FACE ANALYSIS
-            # ==========================================
-            face_frame = ctk.CTkFrame(card, fg_color="transparent")
-            face_frame.pack(fill="x", padx=10, pady=(10, 5))
+            speech_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20) # Angoli più arrotondati
+            speech_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15) # Più spazio dai bordi
             
-            ctk.CTkLabel(face_frame, text="👁️ Gaze and Face Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
-            ctk.CTkLabel(face_frame, text=f"Score Total Face Movements: {cv_face.get('head_total', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))            
-            ctk.CTkLabel(face_frame, text=f"Eyes Distracted Time: {cv_face.get('eye_gaze_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(face_frame, text=f"Face Tremor Time: {cv_face.get('face_tremor_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(face_frame, text=f"Head Moved/Turned Time: {cv_face.get('head_movement_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(speech_frame, text="🎤 Speech Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
+            ctk.CTkLabel(speech_frame, text=f"Long Pauses: {item.get('silence_count', 0)}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(speech_frame, text=f"Vocal Fillers: {v_string}", font=font_normale, text_color="#333333", justify="center").pack(anchor="center", pady=4)
+            ctk.CTkLabel(speech_frame, text=f"Filler Words: {f_string}", font=font_normale, text_color="#333333", justify="center").pack(anchor="center", pady=4)
+            ctk.CTkLabel(speech_frame, text=f"Voice Tremor: {item.get('tremor', 0)} / 100", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
 
-            # ==========================================
-            # 🖐️ HAND AND GESTURE ANALYSIS
-            # ==========================================
-            hand_frame = ctk.CTkFrame(card, fg_color="transparent")
-            hand_frame.pack(fill="x", padx=10, pady=(5, 10))
+            # ---- GAZE/FACE FRAME ----
+            face_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
+            face_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
             
-            ctk.CTkLabel(hand_frame, text="🖐️ Hand and Gesture Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
-            ctk.CTkLabel(hand_frame, text=f"Score Total Hand Gesture: {cv_hand.get('hand_gravity', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(hand_frame, text=f"Gesticulation Time: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(hand_frame, text=f"Hands Above Chin Time: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(hand_frame, text=f"Touching Face Time: {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(face_frame, text="👁️ Gaze Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
+            ctk.CTkLabel(face_frame, text=f"Face Movements: {cv_face.get('head_total', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)            
+            ctk.CTkLabel(face_frame, text=f"Eyes Distracted: {cv_face.get('eye_gaze_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(face_frame, text=f"Face Tremor: {cv_face.get('face_tremor_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(face_frame, text=f"Head Turn Time: {cv_face.get('head_movement_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+
+            # ---- HAND FRAME ----
+            hand_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
+            hand_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
+            
+            ctk.CTkLabel(hand_frame, text="🖐️ Gesture Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
+            ctk.CTkLabel(hand_frame, text=f"Total Gesture: {cv_hand.get('hand_gravity', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Gesticulation: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Hands > Chin: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Touching Face: {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            # Modifica 3: Aggiunta la sezione "Score" per la singola domanda
+            q_score_frame = ctk.CTkFrame(card, fg_color="transparent")
+            q_score_frame.pack(pady=(15, 10), anchor="center")
+            
+            ctk.CTkLabel(q_score_frame, text="Score: ", font=font_titolo_box, text_color="#333333").pack(side="left")
+            ctk.CTkLabel(q_score_frame, text=" 80 / 100 ", font=font_domanda, 
+                         fg_color=TEXT_GREEN, text_color="white", corner_radius=8, width=80, height=30).pack(side="left", padx=5)
+
 
         # =========================================================
         # 2. SECOND PART: OVERALL FEEDBACK AND SCORE
         # =========================================================
-        ctk.CTkLabel(center_frame, text="Overall Feedback", font=("Helvetica", 22, "bold"), text_color=PRINCIPAL_COLOR).pack(anchor="w", pady=(30, 5))
+        ctk.CTkLabel(center_frame, text="Overall Feedback", font=font_titolo_sezione, text_color=TEXT_SUB).pack(anchor="w", pady=(40, 10), padx=20)
         
-        feedback_frame = ctk.CTkFrame(center_frame, fg_color="#F8F9FA", corner_radius=15, border_width=2, border_color="#CCCCCC")
-        feedback_frame.pack(fill="x", pady=5, ipady=15, ipadx=15)
+        feedback_frame = ctk.CTkFrame(center_frame, fg_color="white", corner_radius=15, border_width=2, border_color="#E8ECE8")
+        feedback_frame.pack(fill="x", padx=20, pady=5, ipady=20, ipadx=20)
 
         final_score_value = 75 
         
         if final_score_value > 66:
-            score_color = "#4CAF50" 
+            score_color = "#12BA4B" 
         elif final_score_value >= 33:
             score_color = "#FF9800" 
         else:
             score_color = "#F44336" 
 
         score_container = ctk.CTkFrame(feedback_frame, fg_color="transparent")
-        score_container.pack(anchor="w", padx=20, pady=(10, 15))
+        # Modifica 1b: Anche qui aggiunto il margine in alto per non tagliare il bordo 
+        score_container.pack(anchor="w", padx=10, pady=(20, 20))
 
-        ctk.CTkLabel(score_container, text="Final Score: ", font=("Helvetica", 18, "bold"), text_color="black").pack(side="left")
+        ctk.CTkLabel(score_container, text="Final Score: ", font=font_titolo_box, text_color="#333333").pack(side="left")
         
-        ctk.CTkLabel(score_container, text=f" {final_score_value} / 100 ", font=("Helvetica", 18, "bold"), 
-                     fg_color=score_color, text_color="white", corner_radius=8).pack(side="left", padx=10)
+        ctk.CTkLabel(score_container, text=f" {final_score_value} / 100 ", font=font_domanda, 
+                     fg_color=score_color, text_color="white", corner_radius=8, width=100, height=35).pack(side="left", padx=10)
 
-        ctk.CTkLabel(feedback_frame, text="Questions to Review:", font=("Helvetica", 16, "bold"), text_color="black").pack(anchor="w", padx=20)
+        ctk.CTkLabel(feedback_frame, text="Questions to Review:", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="w", padx=10)
         
         ctk.CTkLabel(feedback_frame, text="• Q2: What is your greatest weakness? (High voice tremor detected)\n• Q4: Where do you see yourself in 5 years? (Too many filler words)", 
-                     font=("Helvetica", 14), text_color="black", justify="left", wraplength=850).pack(anchor="w", padx=30, pady=(5, 15))
+                     font=font_normale, text_color="#333333", justify="left", wraplength=850).pack(anchor="w", padx=20, pady=(5, 20))
 
-        ctk.CTkLabel(feedback_frame, text="Suggestions:", font=("Helvetica", 16, "bold"), text_color="black").pack(anchor="w", padx=20)
+        ctk.CTkLabel(feedback_frame, text="Suggestions:", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="w", padx=10)
         
         ctk.CTkLabel(feedback_frame, text="🟢 Positive: Your gaze was very steady and you maintained good eye contact.\n🟢 Positive: You didn't touch your face and used hand gestures effectively to explain yourself.\n🔴 Negative: Your voice trembled significantly during some answers, try taking deep breaths.\n🔴 Negative: Try to reduce filler words like 'basically' and 'like'.", 
-                     font=("Helvetica", 14), text_color="black", justify="left", wraplength=850).pack(anchor="w", padx=30, pady=(5, 10))
-
+                     font=font_normale, text_color="#333333", justify="left", wraplength=850).pack(anchor="w", padx=20, pady=(5, 10))
 
         # =========================================================
         # DOWNLOAD BUTTON
         # =========================================================
-        ctk.CTkButton(center_frame, text="Download Report", font=("Helvetica", 16, "bold"), 
-                      fg_color=PRINCIPAL_COLOR, text_color="black", hover_color=SECONDARY_COLOR, 
-                      height=50, corner_radius=10,
-                      command=lambda: print("Avvio generazione PDF del report...")).pack(pady=(40, 50))
+        
+        ctk.CTkButton(center_frame, text="Download Report", font=font_bottoni, 
+                      fg_color=TEXT_GREEN, text_color="white", hover_color=TEXT_SUB, 
+                      width=250, height=55, corner_radius=15,
+                      command=lambda: self.export_report(data, final_score_value)).pack(pady=(50, 20))
+
+
+    def export_report(self, data, final_score):
+        # 1. Chiedi all'utente dove vuole salvare il file 
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text file", "*.txt"), ("All files", "*.*")],
+            title="Save Interview Report",
+            initialfile="Interview_Report.txt"
+        )
+        
+        if not file_path:
+            return
+
+        # 2. Genera l'intero testo richiamando la funzione del file utils.py
+        testo_report = generate_report_text(data, final_score)
+
+        # 3. Scrive tutto nel file prescelto [cite: 43]
+        try:
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write(testo_report)
+            print(f"Report scaricato con successo in: {file_path}") 
+        except Exception as e:
+            print(f"Errore durante il salvataggio del report: {e}") 

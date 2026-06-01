@@ -95,10 +95,17 @@ class UnifiedVisionTracker:
             successo, frame = cap.read()
             if not successo:
                 continue
-            self.tempo_totale += delta_time # tempo totale calcolo
+            # 1. TROVA IL TEMPO DI ADESSO (Prima di tutto!)
             tempo_attuale = time.time()
+            
+            # 2. CALCOLA LA DIFFERENZA CON IL GIRO PRECEDENTE
             delta_time = tempo_attuale - tempo_precedente
+            
+            # 3. AGGIORNA IL TEMPO PRECEDENTE PER IL PROSSIMO GIRO
             tempo_precedente = tempo_attuale
+            
+            # 4. AGGIUNGI AL TOTALE (Ora ha tutti i dati per farlo)
+            self.tempo_totale += delta_time
 
             frame = cv2.flip(frame, 1)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -195,6 +202,7 @@ class UnifiedVisionTracker:
                                 self.tempo_instabilita_viso += delta_time
 
                         # 5. NUOVA LOGICA COMPORTAMENTALE ORIENTAMENTO TESTA (Le tue nuove soglie esatte)
+                        stato_testa = "Frontale"
                         if pitch > 13: 
                             stato_testa = "Guarda in Basso"
                         elif pitch > 7: 

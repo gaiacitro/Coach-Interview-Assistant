@@ -1,43 +1,61 @@
 # screens/screen2_3.py
 import customtkinter as ctk
 import random
-from config import PRINCIPAL_COLOR, SECONDARY_COLOR
+from config import (
+    CARD_BG, 
+    CARD_BORDER, 
+    TEXT_GREEN,
+    TEXT_SUB,
+    BTN_BG, 
+    BTN_TEXT, 
+    BTN_HOVER,
+    APP_FONT
+)
 
 class Screen2_3(ctk.CTkFrame):
     def __init__(self, parent, controller, mode="job"):
-        super().__init__(parent, fg_color="transparent")
+        super().__init__(parent, 
+                         fg_color=CARD_BG, 
+                         border_color=CARD_BORDER, 
+                         border_width=5, 
+                         corner_radius=20)
         self.controller = controller
         
-        self.pack(expand=True, fill="both", padx=40, pady=40)
+        # Centra la card. I margini interni ora li diamo ai singoli elementi
+        self.pack(expand=True, padx=20, pady=20)
 
-        # --- NOVITÀ: Lista per tenere traccia delle checkbox create ---
+        # Inizializza i font
+        font_titolo = ctk.CTkFont(family=APP_FONT, size=28, weight="bold")
+        font_label = ctk.CTkFont(family=APP_FONT, size=16, weight="bold")
+        font_normale = ctk.CTkFont(family=APP_FONT, size=14)
+        font_bottoni = ctk.CTkFont(family=APP_FONT, size=18, weight="bold")
+
         self.checkboxes = []
 
-        # Determina i testi in base alla modalità ("job" o "uni")
         title_text = "Job Interview Practice" if mode == "job" else "University Oral Exam Practice"
-        num_q_text = "Number of questions you want in the interview" if mode == "job" else "Number of questions you want in the exam"
-        list_text = "Select the questions you would like to receive" if mode == "job" else "Select or add the questions for your exam"
+        num_q_text = "Number of questions you want in the interview:" if mode == "job" else "Number of questions you want in the exam:"
+        list_text = "Select the questions you would like to receive:" if mode == "job" else "Select or add the questions for your exam:"
 
-        # Titolo
+        # 1 e 2. TITOLO: pady=(40, 20) stacca il testo dal bordo superiore, impedendo che si sovrapponga alla linea!
         ctk.CTkLabel(self, text=title_text, 
-                     font=("Helvetica", 28, "bold"), text_color="black").pack(anchor="w", pady=(0, 20))
+                     font=font_titolo, text_color=TEXT_GREEN).pack(pady=(40, 25), anchor="center")
 
-        # Input numero domande
+        # INPUT NUMERO DOMANDE (con padx=40 per distanziarlo dai bordi laterali)
         ctk.CTkLabel(self, text=num_q_text, 
-                     font=("Helvetica", 16, "bold"), text_color="#000000").pack(anchor="w")
+                     font=font_label, text_color=TEXT_SUB).pack(anchor="w", padx=40)
         
-        self.num_questions = ctk.CTkEntry(self, placeholder_text="e.g. 5", height=45, corner_radius=10)
-        self.num_questions.pack(fill="x", pady=(5, 20))
+        self.num_questions = ctk.CTkEntry(self, placeholder_text="e.g. 5", height=45, corner_radius=10,
+                                          font=font_normale, border_color=CARD_BORDER, text_color="black")
+        self.num_questions.pack(fill="x", padx=40, pady=(5, 20))
 
-        # Lista domande
+        # LISTA DOMANDE
         ctk.CTkLabel(self, text=list_text, 
-                     font=("Helvetica", 16, "bold"), text_color="#000000").pack(anchor="w", pady=(0, 10))
+                     font=font_label, text_color=TEXT_SUB).pack(anchor="w", padx=40, pady=(0, 5))
 
-        # Frame scrollabile per le domande
-        self.scroll_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", height=300)
-        self.scroll_frame.pack(fill="both", expand=True, pady=10)
+        # FRAME SCROLLABILE: definisce la larghezza visiva interna della card
+        self.scroll_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", height=200, width=550)
+        self.scroll_frame.pack(fill="x", padx=40, pady=5)
 
-        # Carica domande di default solo se è una job interview
         if mode == "job":
             default_questions = [
                 "Tell me about yourself",
@@ -52,36 +70,41 @@ class Screen2_3(ctk.CTkFrame):
             for q in default_questions:
                 self.add_checkbox(q)
 
-        # Sezione "New custom question"
+        # 4. CASELLA DI TESTO CUSTOM: Nessun fill="x", usiamo larghezze fisse e la centriamo
         custom_frame = ctk.CTkFrame(self, fg_color="transparent")
-        custom_frame.pack(fill="x", pady=10)
+        custom_frame.pack(pady=(15, 5), anchor="center")
 
-        self.custom_entry = ctk.CTkEntry(custom_frame, placeholder_text="Type a custom question here...", height=40)
-        self.custom_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        # Fissata la larghezza a 400 per renderla più stretta e proporzionata
+        self.custom_entry = ctk.CTkEntry(custom_frame, placeholder_text="Type a custom question here...", 
+                                         height=40, width=400,
+                                         font=font_normale, border_color=CARD_BORDER, text_color="black")
+        self.custom_entry.pack(side="left", padx=(0, 10))
 
-        add_btn = ctk.CTkButton(custom_frame, text="+ Add", width=80, height=40, fg_color=PRINCIPAL_COLOR, 
-                                text_color="black", hover_color=SECONDARY_COLOR, command=self.add_custom_question)
+        add_btn = ctk.CTkButton(custom_frame, text="+ Add", width=80, height=40, 
+                                fg_color=BTN_BG, text_color=BTN_TEXT, hover_color=BTN_HOVER, 
+                                font=font_label, corner_radius=10,
+                                command=self.add_custom_question)
         add_btn.pack(side="right")
 
-        # --- NOVITÀ: Label per mostrare gli errori in rosso (inizialmente vuota) ---
-        self.error_label = ctk.CTkLabel(self, text="", text_color="red", font=("Helvetica", 14, "bold"))
-        self.error_label.pack(pady=(5, 0))
+        # Label Errori
+        self.error_label = ctk.CTkLabel(self, text="", text_color="red", font=font_label)
+        self.error_label.pack(pady=(5, 5))
 
-        # Bottone Invia (Ora richiama la funzione di validazione invece di passare subito alla schermata 4)
+        # 3. BOTTONE START: Più piccolo (width=250), centrato e con spazio dal bordo inferiore (pady 40)
         submit_btn = ctk.CTkButton(
-            self, text="Start the interview", font=("Helvetica", 18, "bold"), 
-            fg_color=PRINCIPAL_COLOR, text_color="black", height=60, corner_radius=15,
-            hover_color=SECONDARY_COLOR, 
+            self, text="Start the interview", font=font_bottoni, 
+            fg_color=TEXT_GREEN, text_color=CARD_BG, height=50, width=250, corner_radius=15, 
+            hover_color=TEXT_SUB, 
             command=self.validate_and_start
         )
-        submit_btn.pack(fill="x", pady=(10, 0))
+        submit_btn.pack(pady=(5, 40), anchor="center")
 
     def add_checkbox(self, text):
-        cb = ctk.CTkCheckBox(self.scroll_frame, text=text, font=("Helvetica", 13), 
-                             fg_color=PRINCIPAL_COLOR, hover_color=SECONDARY_COLOR, border_color="gray", border_width=2)
-        cb.pack(anchor="w", pady=8, padx=10)
+        cb = ctk.CTkCheckBox(self.scroll_frame, text=text, font=ctk.CTkFont(family=APP_FONT, size=14), 
+                             fg_color=TEXT_GREEN, hover_color=TEXT_SUB, border_color=CARD_BORDER, border_width=2,
+                             text_color="#333333") 
+        cb.pack(anchor="w", pady=8, padx=5)
         
-        # Salviamo l'oggetto checkbox nella nostra lista per controllarlo dopo
         self.checkboxes.append(cb)
 
     def add_custom_question(self):
@@ -109,7 +132,7 @@ class Screen2_3(ctk.CTkFrame):
         # 2. Raccoglie tutte le domande che hanno la spunta
         selected_questions = []
         for cb in self.checkboxes:
-            if cb.get() == 1: # 1 significa che è spuntata
+            if cb.get() == 1: 
                 selected_questions.append(cb.cget("text"))
 
         # 3. Controlla se le domande selezionate sono sufficienti
@@ -119,11 +142,10 @@ class Screen2_3(ctk.CTkFrame):
             )
             return
 
-        # 4. Estrae casualmente il numero di domande richieste (se ne ha selezionate di più)
+        # 4. Estrae casualmente il numero di domande richieste
         final_questions = random.sample(selected_questions, num_requested)
 
-        # 5. Se è tutto ok, svuota eventuali errori vecchi e avvia l'intervista!
+        # 5. Se è tutto ok, svuota eventuali errori vecchi e avvia l'intervista
         self.error_label.configure(text="")
         
-        # CAMBIATO: Ora chiamiamo la schermata di caricamento, passandole le domande!
         self.controller.show_screen("LoadingInterview", data=final_questions)
