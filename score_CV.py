@@ -1,51 +1,75 @@
-#notebook 
+# score_CV.py
 
-## DA GEMINI: CALCOLO DELLO SCORE DI HANDS DETECTION PER OGNI DOMANDA
-#io ne ho un altro, da controllare quali equazioni funzionano meglio
-
-# x= tempo di detection_hands.py
-# y= tempo di hands_movements.py
-
-"""
-def calcola_punteggio_gesticolazione(tempo_x_visibili, tempo_y_alte, tempo_totale):
+def valuta_metrica(valore_sec, tempo_tot, nome_metrica):
+    """
+    Calcola la percentuale e restituisce il pallino colorato e il colore del testo.
+    """
+    # Soglie: (min_rosso, min_giallo, max_giallo, max_rosso)
+    soglie = {
+        "eye_gaze_time": (30.0, 50.0, 70.0, 85.0),
+        "face_tremor_time": (15.0, 35.0, 65.0, 85.0),
+        "head_movement_time": (20.0, 40.0, 65.0, 85.0),
+        "head_down": (20.0, 40.0, 65.0, 85.0),
+        "hand_general_time": (20.0, 40.0, 65.0, 85.0),
+        "face_touch_time": (10.0, 20.0, 40.0, 60.0), 
+        "face_overlap_time": (5.0, 10.0, 20.0, 40.0) 
+        #non ci sono i generali perche li studiamo a parte
+    }
     
-    #Calcola un punteggio unico da 0 a 100 sulla qualità della gesticolazione.
+    # Sicurezza contro la divisione per zero
+    tempo_tot = max(tempo_tot, 0.1)
+    percentuale = (valore_sec / tempo_tot) * 100
     
-    if tempo_totale <= 0:
-        return 0.0
-
-    # Calcolo percentuali sul tempo totale
-    perc_x = (tempo_x_visibili / tempo_totale) * 100
-    perc_y = (tempo_y_alte / tempo_totale) * 100
-
-    # --- 1. CALCOLO PUNTEGGIO BASE (Basato su X) ---
-    punteggio = 0.0
+    # Estraiamo i 4 limiti
+    min_rosso, min_giallo, max_giallo, max_rosso = soglie.get(nome_metrica, (0, 0, 100, 100))
     
-    if 15 <= perc_x <= 55:
-        # Range d'oro: punteggio pieno
-        punteggio = 100.0
-    elif perc_x < 15:
-        # Troppo rigido: il punteggio sale proporzionalmente (0% -> 0 punti, 15% -> 100 punti)
-        punteggio = (perc_x / 15.0) * 100.0
-    elif perc_x > 55:
-        # Troppo movimento: togliamo 1.5 punti per ogni punto percentuale oltre il 55%
-        punteggio = 100.0 - ((perc_x - 55.0) * 1.5)
+    # Assegnazione pallino e colore
+    if percentuale < min_rosso:
+        pallino = "🔴"
+        colore = "#F44336" # Rosso
+    elif percentuale >= min_rosso and percentuale < min_giallo:
+        pallino = "🟡"
+        colore = "#FF9800" # Giallo/Arancione
+    elif percentuale >= min_giallo and percentuale <= max_giallo:
+        pallino = "🟢"
+        colore = "#4CAF50" # Verde
+    elif percentuale > max_giallo and percentuale <= max_rosso:
+        pallino = "🟡"
+        colore = "#FF9800" # Giallo/Arancione
+    else: 
+        pallino = "🔴"
+        colore = "#F44336" # Rosso
         
-    punteggio = max(0.0, punteggio) # Assicuriamoci che non vada sotto zero
+    return {
+        "secondi": round(valore_sec, 1),
+        "percentuale": round(percentuale, 1),
+        "pallino": pallino,
+        "colore": colore
+    }
 
-    # --- 2. APPLICAZIONE PENALITÀ (Basata su Y) ---
-    # Scegliamo un moltiplicatore severo: ogni 1% di mani in faccia toglie 5 punti.
-    moltiplicatore_penalita = 5.0
-    penalita = perc_y * moltiplicatore_penalita
+def valuta_performance_cv(cv_data_dict):
+    """
+    Raccoglie tutti i dati di una domanda, li valuta uno a uno e li impacchetta per l'interfaccia.
+    """
+    face_data = cv_data_dict.get("gaze_face", {})
+    hand_data = cv_data_dict.get("hand_gesture", {})
     
-    punteggio_finale = punteggio - penalita
+    tempo_tot = max(face_data.get("tempo_totale_risposta", 1.0), 0.1)
+    
+    report_valutato = {}
+    
+    # Valutiamo il Viso
+    report_valutato["eye_gaze"] = valuta_metrica(face_data.get('eye_gaze_time', 0.0), tempo_tot, "eye_gaze_time")
+    report_valutato["head_movement"] = valuta_metrica(face_data.get('head_movement_time', 0.0), tempo_tot, "head_movement_time")
+    report_valutato["head_down"] = valuta_metrica(face_data.get('head_down', 0.0), tempo_tot, "head_down")
+    report_valutato["face_tremor"] = valuta_metrica(face_data.get('face_tremor_time', 0.0), tempo_tot, "face_tremor_time")
 
-    # --- 3. NORMALIZZAZIONE ---
-    # Limitiamo il risultato finale strettamente tra 0 e 100
-    return max(0.0, min(100.0, punteggio_finale))
-
-# --- Esempio di utilizzo nel tuo ciclo while ---
-# score = calcola_punteggio_gesticolazione(tempo_mani, tempo_mani_alte, tempo_totale_video)
-# cv2.putText(frame, f"Score Gesti: {int(score)}%", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-
-"""
+    # Valutiamo le Mani
+    report_valutato["hand_general"] = valuta_metrica(hand_data.get('hand_general_time', 0.0), tempo_tot, "hand_general_time")
+    report_valutato["face_touch"] = valuta_metrica(hand_data.get('face_touch_time', 0.0), tempo_tot, "face_touch_time")
+    report_valutato["face_overlap"] = valuta_metrica(hand_data.get('face_overlap_time', 0.0), tempo_tot, "face_overlap_time")
+    
+    return report_valutato   
+    #dizionario con chiavi: eye_gaze, head_movement, head_down, hand_general, face_touch, face_overlap dove
+        # ognuna è un dizionario con chiavi: secondi, percentuale, pallino, colore
+    

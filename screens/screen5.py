@@ -3,6 +3,7 @@ import customtkinter as ctk
 from utils import generate_report_text  
 from utils import DEFAULT_INTERVIEW_DATA  #dati fittizzi per il mock del report, se non arrivano dati reali dall'intervista
 from tkinter import filedialog
+from score_CV import valuta_performance_cv
 from config import (
     CARD_BG, 
     CARD_BORDER, 
@@ -57,7 +58,7 @@ class Screen5(ctk.CTkScrollableFrame):
 
             ctk.CTkLabel(card, text=f"Q{idx+1}: {item['question']}", font=font_domanda, text_color=TEXT_GREEN, wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(10, 5))
             
-            ctk.CTkLabel(card, text=f"Your answer: \"{item['text']}\"", font=font_risposta, text_color="#555555", wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(0, 15))
+            ctk.CTkLabel(card, text=f"Your answer: \"{item['text']}\"", font=font_risposta, text_color="#555555", wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(0, 5))
             cv_data = item.get("cv_data", {})
             cv_face = cv_data.get("gaze_face", {})
             tempo_risposta = cv_face.get("tempo_totale_risposta", 0.0)
@@ -97,15 +98,29 @@ class Screen5(ctk.CTkScrollableFrame):
             # ---- GAZE/FACE FRAME ----
             face_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
             face_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
+            cv_data = item.get("cv_data", {})
             
+            # CHIAMIAMO SCORE_CV.PY PER AVERE TUTTI I DATI PRONTI E COLORATI
+            report_cv = valuta_performance_cv(cv_data)
+            
+            val_eyes = report_cv.get("eye_gaze", {})
+            val_head = report_cv.get("head_movement", {})
+            val_down = report_cv.get("head_down", {})
+            
+            val_gest = report_cv.get("hand_general", {})
+            val_touch = report_cv.get("face_touch", {})
+            val_overlap = report_cv.get("face_overlap", {})
+            val_tremor = report_cv.get("face_tremor", {})
+
             # 1. Titolo
             ctk.CTkLabel(face_frame, text="👁️ Gaze Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
             
             # 2 e 3. Eyes Distracted, Head Turn Time e Head Down
-            ctk.CTkLabel(face_frame, text=f"Eyes Distracted: {cv_face.get('eye_gaze_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(face_frame, text=f"Head Turn: {cv_face.get('head_movement_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(face_frame, text=f"Head Down: {cv_face.get('head_down', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            
+            ctk.CTkLabel(face_frame, text=f"Eyes Distracted: {cv_face.get('eye_gaze_time', 0.0):.1f}s {val_eyes.get('pallino', '')}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(face_frame, text=f"Head Turn: {cv_face.get('head_movement_time', 0.0):.1f}s {val_head.get('pallino', '')}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(face_frame, text=f"Head Down: {cv_face.get('head_down', 0.0):.1f}s {val_down.get('pallino', '')}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(face_frame, text=f"Nodding: {cv_face.get('face_tremor_time', 0.0):.1f}s {val_tremor.get('pallino', '')}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+
             # 4. TOTAL GAZE GRAVITY (Grassetto, Maiuscolo)
             ctk.CTkLabel(face_frame, text="TOTAL GAZE GRAVITY", font=font_titolo_box, text_color="#333333").pack(anchor="center", pady=(15, 5))
 
@@ -149,9 +164,9 @@ class Screen5(ctk.CTkScrollableFrame):
             ctk.CTkLabel(hand_frame, text="🖐️ Gesture Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
             
             # 2. Statistiche principali
-            ctk.CTkLabel(hand_frame, text=f"Gesticulation: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(hand_frame, text=f"Big gestures: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(hand_frame, text=f"Touching Face: {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Gesticulation: {cv_hand.get('hand_general_time', 0.0):.1f}s {val_gest.get('pallino', '')}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Big gestures: {cv_hand.get('face_touch_time', 0.0):.1f}s {val_touch.get('pallino', '')}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Touching Face: {cv_hand.get('face_overlap_time', 0.0):.1f}s {val_overlap.get('pallino', '')}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
 
             # 4. TOTAL GESTURE GRAVITY (Grassetto, Maiuscolo)
             ctk.CTkLabel(hand_frame, text="TOTAL GESTURE GRAVITY", font=font_titolo_box, text_color="#333333").pack(anchor="center", pady=(15, 5))
