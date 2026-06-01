@@ -12,7 +12,7 @@
         .avatar-video {
             position: absolute; top: 0; left: 0;
             width: 100vw; height: 100vh; object-fit: cover;
-            transition: opacity 0.5s ease; /* Aggiunta una transizione per sfumare il video */
+            /*transition: opacity 0.5s ease; /* Aggiunta una transizione per sfumare il video */
         }
 
         #video-zitto { z-index: 1; opacity: 1; }
@@ -75,10 +75,16 @@
         videoParla.currentTime = 0;
 
         videoParla.addEventListener('ended', function() {
+            // 1. Nascondi il video che parla (ora sarà istantaneo senza transizione)
             videoParla.style.opacity = 0; 
             videoParla.currentTime = 0; 
+            
+            // 2. SINCRONIZZAZIONE: Fai ripartire il video zitto dal primo fotogramma!
+            videoZitto.currentTime = 0;
+            videoZitto.play(); // Assicura che continui a riprodursi
         });
 
+        
         document.addEventListener('keydown', function(event) {
             if (event.code === 'Space') {
                 
@@ -115,8 +121,15 @@
                             }, 500);
                             
                         } else {
-                            qDiv.className = "question-style";
-                            qDiv.innerText = response;
+                            qDiv.className = "question-style"; 
+                            qDiv.innerText = response; 
+
+                            // --- AGGIUNTA FONDAMENTALE ---
+                            // Mettiamo in pausa il video zitto e lo portiamo al fotogramma iniziale.
+                            // Essendo nascosto dal video parlato, l'utente non vedrà questo "scatto".
+                            videoZitto.pause();
+                            videoZitto.currentTime = 0;
+                            // -----------------------------
 
                             videoParla.style.opacity = 1;
                             videoParla.play();
