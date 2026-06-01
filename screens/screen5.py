@@ -58,7 +58,11 @@ class Screen5(ctk.CTkScrollableFrame):
             ctk.CTkLabel(card, text=f"Q{idx+1}: {item['question']}", font=font_domanda, text_color=TEXT_GREEN, wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(10, 5))
             
             ctk.CTkLabel(card, text=f"Your answer: \"{item['text']}\"", font=font_risposta, text_color="#555555", wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(0, 15))
-
+            cv_data = item.get("cv_data", {})
+            cv_face = cv_data.get("gaze_face", {})
+            tempo_risposta = cv_face.get("tempo_totale_risposta", 0.0)
+            
+            ctk.CTkLabel(card, text=f"Response time: {tempo_risposta:.1f} sec", font=font_normale, text_color="#888888").pack(anchor="w", padx=10, pady=(0, 15))
             ctk.CTkButton(card, text="Reformulate", font=font_bottoni, 
                           fg_color=BTN_BG, text_color=BTN_TEXT, hover_color=BTN_HOVER, 
                           width=140, height=35, corner_radius=10,
@@ -94,29 +98,89 @@ class Screen5(ctk.CTkScrollableFrame):
             face_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
             face_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
             
+            # 1. Titolo
             ctk.CTkLabel(face_frame, text="👁️ Gaze Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
-            ctk.CTkLabel(face_frame, text=f"Face Movements: {cv_face.get('head_total', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)            
+            
+            # 2 e 3. Eyes Distracted, Head Turn Time e Head Down
             ctk.CTkLabel(face_frame, text=f"Eyes Distracted: {cv_face.get('eye_gaze_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(face_frame, text=f"Face Tremor: {cv_face.get('face_tremor_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(face_frame, text=f"Head Turn Time: {cv_face.get('head_movement_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(face_frame, text=f"Head Turn: {cv_face.get('head_movement_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(face_frame, text=f"Head Down: {cv_face.get('head_down', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            
+            # 4. TOTAL GAZE GRAVITY (Grassetto, Maiuscolo)
+            ctk.CTkLabel(face_frame, text="TOTAL GAZE GRAVITY", font=font_titolo_box, text_color="#333333").pack(anchor="center", pady=(15, 5))
 
+            # Estraiamo il valore come intero per la percentuale
+            gaze_percent = int(cv_face.get('head_total', 0.0))
+            gaze_percent_clamped = max(0, min(100, gaze_percent)) # Limita tra 0 e 100 per non far uscire la lineetta dal disegno
+            
+            # 5. Barra colorata personalizzata (utilizziamo un Canvas di Tkinter)
+            canvas_w = 320
+            canvas_h = 16
+            bar_canvas = ctk.CTkCanvas(face_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
+            bar_canvas.pack(anchor="center", pady=(0, 0))
+
+            segment_w = canvas_w / 5
+            colors = ["#FE3939", "#FDB44E", "#79D25B", "#FDB44E", "#FE3939"] # Rosso, Giallo, Verde, Giallo, Rosso
+            
+            # Disegniamo i 5 segmenti con i due estremi arrotondati per ricreare l'effetto "pillola"
+            bar_canvas.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=colors[0], outline=colors[0])
+            bar_canvas.create_rectangle(canvas_h/2, 0, segment_w, canvas_h, fill=colors[0], outline=colors[0])
+            
+            bar_canvas.create_rectangle(segment_w, 0, segment_w*2, canvas_h, fill=colors[1], outline=colors[1])
+            bar_canvas.create_rectangle(segment_w*2, 0, segment_w*3, canvas_h, fill=colors[2], outline=colors[2])
+            bar_canvas.create_rectangle(segment_w*3, 0, segment_w*4, canvas_h, fill=colors[3], outline=colors[3])
+            
+            bar_canvas.create_rectangle(segment_w*4, 0, canvas_w - canvas_h/2, canvas_h, fill=colors[4], outline=colors[4])
+            bar_canvas.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=colors[4], outline=colors[4])
+
+            # Lineetta nera indicatore
+            marker_x = (gaze_percent_clamped / 100) * canvas_w
+            bar_canvas.create_line(marker_x, -2, marker_x, canvas_h + 10, fill="black", width=4)
+
+            # Numero in percentuale sotto la barra
+            ctk.CTkLabel(face_frame, text=f"{gaze_percent}%", font=font_titolo_box, text_color="black").pack(anchor="center", pady=(0, 5))
+            
+            
             # ---- HAND FRAME ----
             hand_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
             hand_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
             
+            # 1. Titolo
             ctk.CTkLabel(hand_frame, text="🖐️ Gesture Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
-            ctk.CTkLabel(hand_frame, text=f"Total Gesture: {cv_hand.get('hand_gravity', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(hand_frame, text=f"Gesticulation: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(hand_frame, text=f"Hands > Chin: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(hand_frame, text=f"Touching Face: {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            # Modifica 3: Aggiunta la sezione "Score" per la singola domanda
-            q_score_frame = ctk.CTkFrame(card, fg_color="transparent")
-            q_score_frame.pack(pady=(15, 10), anchor="center")
             
-            ctk.CTkLabel(q_score_frame, text="Score: ", font=font_titolo_box, text_color="#333333").pack(side="left")
-            ctk.CTkLabel(q_score_frame, text=" 80 / 100 ", font=font_domanda, 
-                         fg_color=TEXT_GREEN, text_color="white", corner_radius=8, width=80, height=30).pack(side="left", padx=5)
+            # 2. Statistiche principali
+            ctk.CTkLabel(hand_frame, text=f"Gesticulation: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Big gestures: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            ctk.CTkLabel(hand_frame, text=f"Touching Face: {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
 
+            # 4. TOTAL GESTURE GRAVITY (Grassetto, Maiuscolo)
+            ctk.CTkLabel(hand_frame, text="TOTAL GESTURE GRAVITY", font=font_titolo_box, text_color="#333333").pack(anchor="center", pady=(15, 5))
+
+            # Estraiamo il valore come intero (tuo *100 è già in union_face_hands.py!)
+            hand_percent = int(cv_hand.get('hand_gravity', 0.0))
+            hand_percent_clamped = max(0, min(100, hand_percent))
+            
+            # 5. Barra colorata personalizzata (Riutilizziamo le misure del Gaze)
+            bar_canvas_h = ctk.CTkCanvas(hand_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
+            bar_canvas_h.pack(anchor="center", pady=(0, 0))
+            
+            # Disegniamo i 5 segmenti colorati (le variabili colors e segment_w sono già dichiarate sopra)
+            bar_canvas_h.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=colors[0], outline=colors[0])
+            bar_canvas_h.create_rectangle(canvas_h/2, 0, segment_w, canvas_h, fill=colors[0], outline=colors[0])
+            
+            bar_canvas_h.create_rectangle(segment_w, 0, segment_w*2, canvas_h, fill=colors[1], outline=colors[1])
+            bar_canvas_h.create_rectangle(segment_w*2, 0, segment_w*3, canvas_h, fill=colors[2], outline=colors[2])
+            bar_canvas_h.create_rectangle(segment_w*3, 0, segment_w*4, canvas_h, fill=colors[3], outline=colors[3])
+            
+            bar_canvas_h.create_rectangle(segment_w*4, 0, canvas_w - canvas_h/2, canvas_h, fill=colors[4], outline=colors[4])
+            bar_canvas_h.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=colors[4], outline=colors[4])
+
+            # Lineetta nera indicatore
+            marker_x_h = (hand_percent_clamped / 100) * canvas_w
+            bar_canvas_h.create_line(marker_x_h, -2, marker_x_h, canvas_h + 10, fill="black", width=4)
+
+            # Numero in percentuale sotto la barra
+            ctk.CTkLabel(hand_frame, text=f"{hand_percent}%", font=font_titolo_box, text_color="black").pack(anchor="center", pady=(0, 5))
 
         # =========================================================
         # 2. SECOND PART: OVERALL FEEDBACK AND SCORE
@@ -179,7 +243,7 @@ class Screen5(ctk.CTkScrollableFrame):
         # 2. Genera l'intero testo richiamando la funzione del file utils.py
         testo_report = generate_report_text(data, final_score)
 
-        # 3. Scrive tutto nel file prescelto [cite: 43]
+        # 3. Scrive tutto nel file prescelto 
         try:
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(testo_report)

@@ -101,7 +101,7 @@ class Screen2_3(ctk.CTkFrame):
 
     def add_checkbox(self, text):
         cb = ctk.CTkCheckBox(self.scroll_frame, text=text, font=ctk.CTkFont(family=APP_FONT, size=14), 
-                             fg_color=TEXT_GREEN, hover_color=TEXT_SUB, border_color=CARD_BORDER, border_width=2,
+                             fg_color=TEXT_GREEN, hover_color=BTN_HOVER, border_color=CARD_BORDER, border_width=2,
                              text_color="#333333") 
         cb.pack(anchor="w", pady=8, padx=5)
         

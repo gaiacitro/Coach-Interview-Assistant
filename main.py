@@ -4,7 +4,7 @@ import customtkinter as ctk
 from screens.screen1 import Screen1
 from screens.screen2_3 import Screen2_3
 from screens.screen5 import Screen5
-from config import CARD_BG  # <-- 1. Importiamo il colore di sfondo per le card
+from config import CARD_BG, APP_FONT, TEXT_GREEN, TEXT_SUB  # <-- 1. Importiamo il colore di sfondo per le card
 
 class InterviewApp(ctk.CTk):
     def __init__(self):
@@ -54,9 +54,9 @@ class InterviewApp(ctk.CTk):
             loading_frame.pack(expand=True, fill="both")
             
             ctk.CTkLabel(loading_frame, text="Loading the interview setup...", 
-                         font=("Helvetica", 28, "bold"), text_color="black").pack(pady=(250, 10))
+                         font=(APP_FONT, 28, "bold"), text_color=TEXT_GREEN).pack(pady=(250, 10))
             ctk.CTkLabel(loading_frame, text="Initializing AI models. This may take a few seconds", 
-                         font=("Helvetica", 16), text_color="gray").pack()
+                         font=(APP_FONT, 16), text_color=TEXT_SUB).pack()
             
             self.update()
             

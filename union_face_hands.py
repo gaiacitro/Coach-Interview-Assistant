@@ -276,6 +276,9 @@ class UnifiedVisionTracker:
         if self.thread:
             self.thread.join(timeout=1.0)
         
+        head_total_number = ( 0.3*(self.tempo_bassa_testa)**2+0.5*self.tempo_testa_spostata)/max(self.tempo_totale, 0.1)*100
+        hand_gravity_number = ( 0.6*(self.tempo_gesticolazione-self.tempo_mani_sopra_mento) + 0.8*(self.tempo_mani_sopra_mento-self.tempo_sovrapposizione_box) + 0.3*(self.tempo_sovrapposizione_box)**2 )/max(self.tempo_totale, 0.1)*100
+        
         # Impacchettiamo i dati CV direttamente qui!
         cv_data_dict = {
             "gaze_face": {
@@ -284,15 +287,14 @@ class UnifiedVisionTracker:
                 "face_tremor_time": self.tempo_instabilita_viso,
                 "head_movement_time": self.tempo_testa_spostata,
                 "head_down": self.tempo_bassa_testa,
-                "head_total":( 0.5*(self.tempo_bassa_testa)**2+0.5*self.tempo_testa_spostata)/max(self.tempo_totale, 0.1)
+                "head_total": min (head_total_number, 100) # Limitiamo a 100 per non far uscire la lineetta dal disegno
             },
             "hand_gesture": {
                 "tempo_totale_risposta": self.tempo_totale,
                 "hand_general_time": self.tempo_gesticolazione,
                 "face_touch_time": self.tempo_mani_sopra_mento-self.tempo_sovrapposizione_box,
                 "face_overlap_time": self.tempo_sovrapposizione_box,
-                "hand_gravity":( 0.6*(self.tempo_gesticolazione-self.tempo_mani_sopra_mento) + 
-                                0.8*(self.tempo_mani_sopra_mento-self.tempo_sovrapposizione_box) + 0.3*(self.tempo_sovrapposizione_box)**2 )/max(self.tempo_totale, 0.1)
+                "hand_gravity": min (hand_gravity_number, 100) # Limitiamo a 100 per non far uscire la lineetta dal disegno
             }
         }
         return cv_data_dict
