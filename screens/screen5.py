@@ -138,10 +138,10 @@ class Screen5(ctk.CTkScrollableFrame):
             face_frame.pack(fill="x", padx=10, pady=(10, 5))
             
             ctk.CTkLabel(face_frame, text="👁️ Gaze and Face Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
-            
-            ctk.CTkLabel(face_frame, text=f"Eyes Distracted Time: {cv_face.get('eye_gaze_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(face_frame, text=f"Face Tremor/Tension Time: {cv_face.get('face_tremor_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(face_frame, text=f"Head Moved/Turned Time: {cv_face.get('head_movement_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(face_frame, text=f"Score Total Face Movements: {cv_face.get('head_total', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))            
+            ctk.CTkLabel(face_frame, text=f"Eyes Distracted Time: {cv_face.get('eye_gaze_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(face_frame, text=f"Face Tremor Time: {cv_face.get('face_tremor_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(face_frame, text=f"Head Moved/Turned Time: {cv_face.get('head_movement_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0))
 
             # ==========================================
             # 🖐️ HAND AND GESTURE ANALYSIS
@@ -150,10 +150,10 @@ class Screen5(ctk.CTkScrollableFrame):
             hand_frame.pack(fill="x", padx=10, pady=(5, 10))
             
             ctk.CTkLabel(hand_frame, text="🖐️ Hand and Gesture Analysis:", font=("Helvetica", 14, "bold"), text_color="black").grid(row=0, column=0, sticky="w", pady=2)
-            
-            ctk.CTkLabel(hand_frame, text=f"Gesticulation Time: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(hand_frame, text=f"Hands Above Chin Time: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
-            ctk.CTkLabel(hand_frame, text=f"Face Overlap Time (Box): {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(hand_frame, text=f"Score Total Hand Gesture: {cv_hand.get('hand_gravity', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=1, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(hand_frame, text=f"Gesticulation Time: {cv_hand.get('hand_general_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=2, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(hand_frame, text=f"Hands Above Chin Time: {cv_hand.get('face_touch_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=3, column=0, sticky="w", padx=(20,0))
+            ctk.CTkLabel(hand_frame, text=f"Touching Face Time: {cv_hand.get('face_overlap_time', 0.0):.1f}s", font=("Helvetica", 13), text_color="black").grid(row=4, column=0, sticky="w", padx=(20,0))
 
         # =========================================================
         # 2. SECOND PART: OVERALL FEEDBACK AND SCORE
