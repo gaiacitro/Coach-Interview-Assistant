@@ -142,6 +142,136 @@ def generate_report_text(data, final_score):
 
     return testo_report
 
+def generate_suggestions(data):
+    """
+    Analizza tutti i dati di tutte le domande e genera suggestions dinamiche.
+    Le suggestions compaiono SOLO se la metrica è risultata in ROSSO o in VERDE
+    per almeno (n // 2) + 1 volte. I valori in giallo vengono ignorati.
+    """
+    from suggestions import SUGGESTIONS
+    
+    # 1. Soglie ALLINEATE ESATTAMENTE a quelle di score.py
+    soglie_cv = {
+        "eye_gaze_time": (10.0, 30.0, 60.0, 85.0),
+        "face_tremor_time": (15.0, 35.0, 65.0, 85.0),
+        "head_movement_time": (20.0, 40.0, 65.0, 85.0),
+        "head_down": (20.0, 40.0, 65.0, 85.0),
+        "hand_general_time": (20.0, 40.0, 65.0, 85.0),
+        "face_touch_time": (10.0, 20.0, 40.0, 60.0), 
+        "face_overlap_time": (5.0, 10.0, 20.0, 40.0)
+    }
+    
+    soglie_speech = {
+        "vocal_fillers": (1.0, 2.0, 5.0, 8.0),     
+        "filler_words": (-1.0, -1.0, 2.0, 5.0),    
+        "micro_silences": (-1.0, -1.0, 5.0, 12.0), 
+        "long_pauses": (-1.0, -1.0, 0.0, 1.0),     
+        "tremor": (-1.0, -1.0, 33.0, 66.0)         
+    }
+    
+    metric_mapping = {
+        "eye_gaze_time": "eye_gaze_time",
+        "face_tremor_time": "face_tremor_time",
+        "head_movement_time": "head_movement_time",
+        "head_down": "head_down",
+        "hand_general_time": "hand_general_time",
+        "face_touch_time": "face_touch_time",
+        "face_overlap_time": "face_overlap_time",
+        "vocal_fillers": "vocal_fillers",
+        "filler_words": "filler_words",
+        "micro_silences": "micro_silences",
+        "long_pauses": "long_pauses",
+        "tremor": "tremor"
+    }
+    
+    num_questions = len(data)
+    if num_questions == 0:
+        return []
+        
+    # La soglia della maggioranza assoluta (es: 2 su 2, 2 su 3, 3 su 4...)
+    threshold = (num_questions // 2) + 1  
+    
+    # Inizializziamo i contatori
+    counters = {metric: {"low": 0, "high": 0, "optimal": 0} for metric in metric_mapping.keys()}
+    
+    # Analizza ogni domanda
+    for item in data:
+        # ===== DATI CV/VISION =====
+        cv_data = item.get("cv_data", {})
+        face_data = cv_data.get("gaze_face", {})
+        hand_data = cv_data.get("hand_gesture", {})
+        
+        tempo_tot = max(face_data.get("tempo_totale_risposta", 1.0), 0.1)
+        
+        cv_metrics = {
+            "eye_gaze_time": face_data.get('eye_gaze_time', 0.0),
+            "face_tremor_time": face_data.get('face_tremor_time', 0.0),
+            "head_movement_time": face_data.get('head_movement_time', 0.0),
+            "head_down": face_data.get('head_down', 0.0),
+            "hand_general_time": hand_data.get('hand_general_time', 0.0),
+            "face_touch_time": hand_data.get('face_touch_time', 0.0),
+            "face_overlap_time": hand_data.get('face_overlap_time', 0.0),
+        }
+        
+        for metric_key, valore_sec in cv_metrics.items():
+            min_rosso, min_giallo, max_giallo, max_rosso = soglie_cv.get(metric_key, (0, 0, 100, 100))
+            percentuale = (valore_sec / tempo_tot) * 100
+            
+            # Conta SOLO se è Rosso (Estremi) o Verde (Ottimale). Ignora il Giallo.
+            if percentuale < min_rosso:
+                counters[metric_key]["low"] += 1
+            elif percentuale > max_rosso:
+                counters[metric_key]["high"] += 1
+            elif min_giallo <= percentuale <= max_giallo:
+                counters[metric_key]["optimal"] += 1
+        
+        # ===== DATI SPEECH =====
+        testo_risposta = item.get("text", "")
+        durata_audio = max(item.get("audio_duration", 0.1), 0.1)
+        total_words = max(len(testo_risposta.split()), 1)
+        
+        vocal_fillers_rate = (item.get("vocal_fillers", 0) / total_words) * 100 
+        filler_words_rate = (item.get("filler_words", 0) / total_words) * 100 
+        micro_silences_rate = (item.get("micro_silences", 0) / durata_audio) * 60  
+        
+        speech_metrics = {
+            "vocal_fillers": vocal_fillers_rate,
+            "filler_words": filler_words_rate,
+            "micro_silences": micro_silences_rate,
+            "long_pauses": item.get("silence_count", 0),
+            "tremor": item.get("tremor", 0)
+        }
+        
+        for metric_key, valore in speech_metrics.items():
+            min_rosso, min_giallo, max_giallo, max_rosso = soglie_speech.get(metric_key, (-1.0, -1.0, 100, 100))
+            
+            # Conta SOLO se è Rosso (Estremi) o Verde (Ottimale). Ignora il Giallo.
+            if valore < min_rosso:
+                counters[metric_key]["low"] += 1
+            elif valore > max_rosso:
+                counters[metric_key]["high"] += 1
+            elif min_giallo <= valore <= max_giallo:
+                counters[metric_key]["optimal"] += 1
+    
+    # Genera suggestions basate sui contatori definitivi
+    suggestions_list = []
+    
+    for metric_key, counts in counters.items():
+        suggestion_key = metric_mapping.get(metric_key)
+        
+        if suggestion_key not in SUGGESTIONS:
+            continue
+        
+        # Le suggestions vengono popolate SOLO se superano il threshold della maggioranza
+        if counts["optimal"] >= threshold and "optimal" in SUGGESTIONS[suggestion_key]:
+            suggestions_list.append((SUGGESTIONS[suggestion_key]["optimal"], "#4CAF50"))  # Verde
+        elif counts["low"] >= threshold and "low" in SUGGESTIONS[suggestion_key]:
+            suggestions_list.append((SUGGESTIONS[suggestion_key]["low"], "#F44336"))  # Rosso
+        elif counts["high"] >= threshold and "high" in SUGGESTIONS[suggestion_key]:
+            suggestions_list.append((SUGGESTIONS[suggestion_key]["high"], "#F44336"))  # Rosso
+            
+    return suggestions_list
+
 def add_dot(parent_frame, label_text, val_dict):
             font_normale = (APP_FONT, 14)
             # Crea un contenitore invisibile orizzontale

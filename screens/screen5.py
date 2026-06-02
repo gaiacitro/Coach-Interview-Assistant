@@ -3,7 +3,8 @@ import customtkinter as ctk
 from utils import (
     generate_report_text,
     DEFAULT_INTERVIEW_DATA,
-    add_dot
+    add_dot,
+    generate_suggestions
 )  
 from tkinter import filedialog
 from score import valuta_performance_cv, valuta_performance_speech
@@ -334,8 +335,25 @@ class Screen5(ctk.CTkScrollableFrame):
 
         ctk.CTkLabel(feedback_frame, text="Suggestions:", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="w", padx=10)
         
-        ctk.CTkLabel(feedback_frame, text="🟢 Positive: Your gaze was very steady and you maintained good eye contact.\n🟢 Positive: You didn't touch your face and used hand gestures effectively to explain yourself.\n🔴 Negative: Your voice trembled significantly during some answers, try taking deep breaths.\n🔴 Negative: Try to reduce filler words like 'basically' and 'like'.", 
-                     font=font_normale, text_color="#333333", justify="left", wraplength=850).pack(anchor="w", padx=20, pady=(5, 10))
+        # Genera suggestions dinamiche basate sui dati
+        suggestions_list = generate_suggestions(data)
+        
+        if suggestions_list:
+            for suggestion_text, color in suggestions_list:
+                # Crea un frame per ogni suggestion con pallino colorato
+                sugg_row = ctk.CTkFrame(feedback_frame, fg_color="transparent")
+                sugg_row.pack(anchor="w", padx=20, pady=2)
+                
+                # Pallino colorato
+                pallino_symbol = "●"
+                ctk.CTkLabel(sugg_row, text=f"{pallino_symbol} ", font=font_normale, text_color=color).pack(side="left")
+                
+                # Testo suggestion
+                ctk.CTkLabel(sugg_row, text=suggestion_text, font=font_normale, text_color="#333333", wraplength=800, justify="left").pack(side="left", fill="both", expand=True)
+        else:
+            # Fallback se non ci sono suggestions
+            ctk.CTkLabel(feedback_frame, text="No specific suggestions at this time.", 
+                         font=font_normale, text_color="#888888").pack(anchor="w", padx=20, pady=5)
 
         # =========================================================
         # DOWNLOAD BUTTON

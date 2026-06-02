@@ -6,7 +6,7 @@ def valuta_metrica(valore_sec, tempo_tot, nome_metrica):
     """
     # Soglie: (min_rosso, min_giallo, max_giallo, max_rosso)
     soglie = {
-        "eye_gaze_time": (30.0, 50.0, 70.0, 85.0),
+        "eye_gaze_time": (10.0, 30.0, 60.0, 85.0),
         "face_tremor_time": (15.0, 35.0, 65.0, 85.0),
         "head_movement_time": (20.0, 40.0, 65.0, 85.0),
         "head_down": (20.0, 40.0, 65.0, 85.0),
