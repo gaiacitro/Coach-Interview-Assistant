@@ -4,7 +4,8 @@ from utils import (
     generate_report_text,
     DEFAULT_INTERVIEW_DATA,
     add_dot,
-    generate_suggestions
+    generate_suggestions,
+    get_questions_to_review
 )  
 from tkinter import filedialog
 from score import valuta_performance_cv, valuta_performance_speech
@@ -87,6 +88,7 @@ class Screen5(ctk.CTkScrollableFrame):
         # =========================================================
         ctk.CTkLabel(center_frame, text="Questions & Answers Analysis", font=font_titolo_sezione, text_color=TEXT_SUB).pack(anchor="w", pady=(10, 20), padx=20)
 
+        all_question_scores = []  # Lista per raccogliere i punteggi di ogni domanda
 
         for idx, item in enumerate(data):
             card = ctk.CTkFrame(center_frame, fg_color="white", corner_radius=15, border_width=2, border_color="#E8ECE8")
@@ -298,7 +300,11 @@ class Screen5(ctk.CTkScrollableFrame):
             q_score_frame.pack(pady=(15, 10), anchor="center")
             
             ctk.CTkLabel(q_score_frame, text="Score: ", font=font_titolo_box, text_color="#333333").pack(side="left")
-            ctk.CTkLabel(q_score_frame, text=" 80 / 100 ", font=font_domanda, 
+            
+           
+            score_value = int((hand_percent_clamped + gaze_percent_clamped + speech_percent) / 3) # Semplice media dei 3 punteggi principali
+            all_question_scores.append(score_value)  # Aggiungi il punteggio alla lista
+            ctk.CTkLabel(q_score_frame, text=f" {score_value} / 100 ", font=font_domanda, 
                          fg_color=TEXT_GREEN, text_color="white", corner_radius=8, width=80, height=30).pack(side="left", padx=5)
             
             ########
@@ -310,7 +316,8 @@ class Screen5(ctk.CTkScrollableFrame):
         feedback_frame = ctk.CTkFrame(center_frame, fg_color="white", corner_radius=15, border_width=2, border_color="#E8ECE8")
         feedback_frame.pack(fill="x", padx=20, pady=5, ipady=20, ipadx=20)
 
-        final_score_value = 75 
+        # Calcola il punteggio finale come media di tutti i punteggi delle domande
+        final_score_value = int(sum(all_question_scores) / len(all_question_scores)) if all_question_scores else 0 
         
         if final_score_value > 66:
             score_color = "#12BA4B" 
@@ -330,9 +337,10 @@ class Screen5(ctk.CTkScrollableFrame):
 
         ctk.CTkLabel(feedback_frame, text="Questions to Review:", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="w", padx=10)
         
-        ctk.CTkLabel(feedback_frame, text="• Q2: What is your greatest weakness? (High voice tremor detected)\n• Q4: Where do you see yourself in 5 years? (Too many filler words)", 
+        review_text = get_questions_to_review(data)
+        ctk.CTkLabel(feedback_frame, text=review_text, 
                      font=font_normale, text_color="#333333", justify="left", wraplength=850).pack(anchor="w", padx=20, pady=(5, 20))
-
+        
         ctk.CTkLabel(feedback_frame, text="Suggestions:", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="w", padx=10)
         
         # Genera suggestions dinamiche basate sui dati

@@ -131,14 +131,23 @@ def generate_report_text(data, final_score):
     testo_report += f"Final Score: {final_score} / 100\n\n"
     
     testo_report += "Questions to Review:\n"
-    testo_report += "* Q2: What is your greatest weakness? (High voice tremor detected)\n"
-    testo_report += "* Q4: Where do you see yourself in 5 years? (Too many filler words)\n\n"
+    testo_report += get_questions_to_review(data) + "\n\n"
+
     
     testo_report += "Suggestions:\n"
-    testo_report += "+ Positive: Your gaze was very steady and you maintained good eye contact.\n"
-    testo_report += "+ Positive: You didn't touch your face and used hand gestures effectively to explain yourself.\n"
-    testo_report += "- Negative: Your voice trembled significantly during some answers, try taking deep breaths.\n"
-    testo_report += "- Negative: Try to reduce filler words like 'basically' and 'like'.\n"
+    
+    # Richiamiamo le suggestions dinamiche
+    suggestions_list = generate_suggestions(data)
+    
+    if suggestions_list:
+        for text, color in suggestions_list:
+            # Usiamo il codice colore per capire se è un feedback positivo o negativo nel file di testo
+            if color == "#4CAF50":  # Verde (Optimal)
+                testo_report += f"+ Positive: {text}\n"
+            else:                   # Rosso (Low/High)
+                testo_report += f"- To improve: {text}\n"
+    else:
+        testo_report += "No specific suggestions at this time.\n"
 
     return testo_report
 
@@ -287,3 +296,65 @@ def add_dot(parent_frame, label_text, val_dict):
             
             # 2. Disegniamo DOPO il testo, che si affiancherà alla destra del pallino
             ctk.CTkLabel(row, text=label_text, font=font_normale, text_color="#333333").pack(side="left")
+
+
+def get_questions_to_review(data):
+    """
+    Analizza i punteggi totali (Speech, Gaze, Hand) per ogni domanda.
+    Se almeno 2 categorie su 3 sono in rosso (troppo o troppo poco),
+    la domanda viene segnalata per la revisione.
+    """
+    from score import valuta_performance_speech
+    
+    questions_to_review = []
+    
+    for idx, item in enumerate(data):
+        red_count = 0
+        
+        # --- 1. SPEECH PERCENT ---
+        # Richiamiamo i dati per calcolare la percentuale esatta come in screen5
+        report_speech = valuta_performance_speech(item)
+        val_long = report_speech.get("long_pauses", {}).get('valore_calcolato', 0)
+        val_micro = report_speech.get("micro_silences", {}).get('valore_calcolato', 0)
+        val_vocal = report_speech.get("vocal_fillers", {}).get('valore_calcolato', 0)
+        val_filler = report_speech.get("filler_words", {}).get('valore_calcolato', 0)
+        val_tremor = report_speech.get("tremor", {}).get('valore_calcolato', 0)
+        
+        speech_gravity_raw = (
+            val_tremor * 0.4 + 
+            val_long * 20 + 
+            val_micro * 1.5 + 
+            max(0, val_filler - 2) * 5 + 
+            abs(val_vocal - 3.5) * 5
+        )
+        speech_percent = int(max(0, min(100, speech_gravity_raw)))
+        
+        # Soglie da screen5: (5.0, 30.0, 60.0, 85.0)
+        if speech_percent < 5.0 or speech_percent > 85.0:
+            red_count += 1
+            
+        # --- 2. GAZE PERCENT (head_total) ---
+        cv_data = item.get("cv_data", {})
+        cv_face = cv_data.get("gaze_face", {})
+        gaze_percent = int(cv_face.get('head_total', 0.0))
+        
+        # Soglie da screen5: (5.0, 25.0, 60.0, 85.0)
+        if gaze_percent < 5.0 or gaze_percent > 85.0:
+            red_count += 1
+            
+        # --- 3. HAND PERCENT (hand_gravity) ---
+        cv_hand = cv_data.get("hand_gesture", {})
+        hand_percent = int(cv_hand.get('hand_gravity', 0.0))
+        
+        # Soglie da screen5: (5.0, 35.0, 55.0, 80.0)
+        if hand_percent < 5.0 or hand_percent > 80.0:
+            red_count += 1
+            
+        # --- VALUTAZIONE ---
+        if red_count >= 2:
+            questions_to_review.append(f"• Q{idx+1}: {item['question']}")
+            
+    if not questions_to_review:
+        return "• No critical questions to review. Great job!"
+        
+    return "\n".join(questions_to_review)
