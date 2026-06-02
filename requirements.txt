@@ -16,3 +16,7 @@ pydub
 faster-whisper
 praat-parselmouth
 pyaudio
+
+#ia
+google-generativeai
+python-dotenv

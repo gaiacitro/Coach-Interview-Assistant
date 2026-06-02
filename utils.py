@@ -3,10 +3,17 @@ import customtkinter as ctk
 from config import APP_FONT, TEXT_GREEN
 
 # --- I tuoi dati fittizi di test (PARTE 1) ---
+# utils.py
+import customtkinter as ctk
+from config import APP_FONT, TEXT_GREEN
+
+# --- I tuoi dati fittizi di test (PARTE 1) ---
 DEFAULT_INTERVIEW_DATA = [
     {
         "question": "Tell me about yourself.",
         "text": "well basically i am a student and uhm i like coding.",
+        "audio_duration": 45.0,     # <--- AGGIUNTO
+        "micro_silences": 2,        # <--- AGGIUNTO
         "silence_count": 2,
         "vocal_fillers": 1,
         "vocal_fillers_dict": {"uhm": 1},
@@ -34,6 +41,8 @@ DEFAULT_INTERVIEW_DATA = [
     {
         "question": "What is your greatest weakness?",
         "text": "i think like my greatest weakness is basically public speaking.",
+        "audio_duration": 35.0,     # <--- AGGIUNTO
+        "micro_silences": 1,        # <--- AGGIUNTO
         "silence_count": 1,
         "vocal_fillers": 0,
         "vocal_fillers_dict": {},
@@ -60,7 +69,8 @@ DEFAULT_INTERVIEW_DATA = [
     }
 ]
 
-# --- Funzione per generare il testo del report completo (PARTE 2) ---
+# ... il resto del file rimane uguale ...
+
 def generate_report_text(data, final_score):
     testo_report = "========================================================\n"
     testo_report += "                 INTERVIEW REPORT                        \n"
@@ -78,7 +88,10 @@ def generate_report_text(data, final_score):
         f_dict = item.get('filler_words_dict', {})
         
         testo_report += "[Speech Analysis]\n"
+        # --- NUOVO: Aggiunti durata e micro silenzi ---
+        testo_report += f"- Audio Duration: {item.get('audio_duration', 0.0):.1f}s\n"
         testo_report += f"- Long Pauses: {item.get('silence_count', 0)}\n"
+        testo_report += f"- Micro Silences: {item.get('micro_silences', 0)}\n"
         
         testo_report += f"- Vocal Fillers: {v_count}\n"
         if v_count > 0:
@@ -97,15 +110,18 @@ def generate_report_text(data, final_score):
         cv_hand = cv_data.get("hand_gesture", {})
 
         testo_report += "[Gaze and Face Analysis]\n"
-        testo_report += f"- Score Total Face Movements: {cv_face.get('head_total', 0.0):.1f}s\n"
+        # --- MODIFICATO: Punteggio totale in percentuale (%) e aggiunto Head Down ---
+        testo_report += f"- Total Gaze Gravity Score: {cv_face.get('head_total', 0.0):.1f}%\n"
         testo_report += f"- Eyes Distracted Time: {cv_face.get('eye_gaze_time', 0.0):.1f}s\n"
-        testo_report += f"- Face Tremor Time: {cv_face.get('face_tremor_time', 0.0):.1f}s\n"
-        testo_report += f"- Head Moved/Turned Time: {cv_face.get('head_movement_time', 0.0):.1f}s\n\n"
+        testo_report += f"- Head Turn Time: {cv_face.get('head_movement_time', 0.0):.1f}s\n"
+        testo_report += f"- Head Down Time: {cv_face.get('head_down', 0.0):.1f}s\n"
+        testo_report += f"- Nodding / Face Tremor Time: {cv_face.get('face_tremor_time', 0.0):.1f}s\n\n"
 
         testo_report += "[Hand and Gesture Analysis]\n"
-        testo_report += f"- Score Total Hand Gesture: {cv_hand.get('hand_gravity', 0.0):.1f}s\n"
+        # --- MODIFICATO: Punteggio totale in percentuale (%) e aggiornati i nomi ---
+        testo_report += f"- Total Gesture Gravity Score: {cv_hand.get('hand_gravity', 0.0):.1f}%\n"
         testo_report += f"- Gesticulation Time: {cv_hand.get('hand_general_time', 0.0):.1f}s\n"
-        testo_report += f"- Hands Above Chin Time: {cv_hand.get('face_touch_time', 0.0):.1f}s\n"
+        testo_report += f"- Big Gestures Time: {cv_hand.get('face_touch_time', 0.0):.1f}s\n"
         testo_report += f"- Touching Face Time: {cv_hand.get('face_overlap_time', 0.0):.1f}s\n"
         testo_report += "-" * 50 + "\n\n"
 
@@ -125,7 +141,6 @@ def generate_report_text(data, final_score):
     testo_report += "- Negative: Try to reduce filler words like 'basically' and 'like'.\n"
 
     return testo_report
-
 
 def add_dot(parent_frame, label_text, val_dict):
             font_normale = (APP_FONT, 14)

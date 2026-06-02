@@ -17,7 +17,8 @@ from config import (
     BTN_HOVER,
     APP_FONT
 )
-
+import threading
+from ai_helper import get_reformulated_text # Importiamo la nostra IA!
 
 def get_threshold_segments(canvas_w, canvas_h, soglie):
     """
