@@ -44,5 +44,37 @@ SUGGESTIONS = {
         "high": "You brought your hands to your face several times. In an interview, this instinctive gesture can convey nervousness or defensiveness. Try keeping your hands clasped on your lap when you're thinking.",
         "optimal": "Congratulations! You avoided touching your face during stressful moments, maintaining an open, clean posture with no visual barriers between you and the interviewer."
     },
-  
+    
+    "hand_gravity": {
+        "low": "The overall score for your gestures is quite flat. Try 'warming up' your non-verbal communication to show more enthusiasm for the position you're applying for.",
+        "high": "Your overall score indicates a bit of underlying agitation in your movements. A solid posture with a few purposeful gestures is the secret to conveying true leadership.",
+        "optimal": "Textbook performance! Your body language communicates professionalism and tranquility in every single movement. You are entirely in command of your space."
+    },
+      
+    "filler_words": {
+        "high": "I noticed you're relying quite a bit on filler words. Try to pause silently instead of filling the gap with a word: it will make you sound much more confident.",
+        "optimal": "Great job keeping filler words to a minimum! Your speech sounds natural and articulate, showing that you are in full control of your message."
+    },
+
+    "vocal_fillers": {
+        "high": "You're using vocal fillers a bit too often. When you need a moment to think, just take a silent breath. A brief pause is much more powerful than a filler sound.",
+        "optimal": "Excellent vocal clarity! You managed your thinking moments perfectly without relying on distracting sounds, making your answer sound very professional."
+    },
+
+    "micro_silences": {
+        "high": "Your speech has a lot of very short pauses, making it sound a bit choppy or hesitant. Try to group your words into smoother, longer phrases to improve your flow.",
+        "optimal": "Your pacing is spot on! You used micro-pauses perfectly to breathe and give rhythm to your sentences, resulting in a very smooth and engaging delivery."
+    },
+
+    "long_pauses": {
+        "high": "There were some very long silences in your answer. If you need time to think, it's totally fine to say, 'That's a great question, let me think for a second,' to keep the connection alive.",
+        "optimal": "Perfect timing! You avoided awkward silences but still took the right amount of time to deliver a well-thought-out and continuous response."
+    },
+
+    "tremor": {
+        "high": "Your voice trembled a bit during your answer, which can easily happen when we feel nervous. Before speaking, try taking a deep breath from your diaphragm to support your voice and project confidence.",
+        "optimal": "Your voice sounded incredibly steady and grounded! You projected calm and confidence, making your answer sound very authoritative and reassuring."
+    }
+
+
 }
