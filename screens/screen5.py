@@ -6,7 +6,7 @@ from utils import (
     add_dot
 )  
 from tkinter import filedialog
-from score_CV import valuta_performance_cv
+from score import valuta_performance_cv, valuta_performance_speech
 from config import (
     CARD_BG, 
     CARD_BORDER, 
@@ -105,6 +105,8 @@ class Screen5(ctk.CTkScrollableFrame):
 
             stats_container = ctk.CTkFrame(card, fg_color="transparent")
             stats_container.pack(fill="x", padx=10, pady=5)
+            canvas_w = 320
+            canvas_h = 16
 
             v_count = item.get('vocal_fillers', 0)
             v_dict = item.get('vocal_fillers_dict', {})
@@ -115,20 +117,70 @@ class Screen5(ctk.CTkScrollableFrame):
             f_string = f"{f_count}\n" + "\n".join([f"    - {w} [{c}]" for w, c in f_dict.items()]) if f_count > 0 else "0"
 
             # Modifica 2: Aggiunto pady=5 ai frame delle statistiche così hanno spazio per le curve
-            # ---- SPEECH FRAME ----
             cv_data = item.get("cv_data", {})
             cv_face = cv_data.get("gaze_face", {})
             cv_hand = cv_data.get("hand_gesture", {})
 
-            speech_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20) # Angoli più arrotondati
-            speech_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15) # Più spazio dai bordi
+            # ---- SPEECH FRAME ----
+            speech_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
+            speech_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
             
             ctk.CTkLabel(speech_frame, text="🎤 Speech Analysis", font=font_titolo_box, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
-            ctk.CTkLabel(speech_frame, text=f"Long Pauses: {item.get('silence_count', 0)}", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
-            ctk.CTkLabel(speech_frame, text=f"Vocal Fillers: {v_string}", font=font_normale, text_color="#333333", justify="center").pack(anchor="center", pady=4)
-            ctk.CTkLabel(speech_frame, text=f"Filler Words: {f_string}", font=font_normale, text_color="#333333", justify="center").pack(anchor="center", pady=4)
-            ctk.CTkLabel(speech_frame, text=f"Voice Tremor: {item.get('tremor', 0)} / 100", font=font_normale, text_color="#333333").pack(anchor="center", pady=4)
+            
+            # 1. Chiamiamo la nuova funzione di calcolo
+            report_speech = valuta_performance_speech(item)
+            
+            val_long = report_speech.get("long_pauses", {})
+            val_micro = report_speech.get("micro_silences", {})
+            val_vocal = report_speech.get("vocal_fillers", {})
+            val_filler = report_speech.get("filler_words", {})
+            val_tremor = report_speech.get("tremor", {})
 
+            # 2. Inseriamo le statistiche con il pallino dinamico (add_dot)
+            add_dot(speech_frame, f"Long Pauses: {val_long.get('valore_reale', 0)}", val_long)
+            add_dot(speech_frame, f"Micro Silences: {val_micro.get('valore_reale', 0)}", val_micro)
+            add_dot(speech_frame, f"Vocal Fillers: {val_vocal.get('valore_reale', 0)}", val_vocal)
+            add_dot(speech_frame, f"Filler Words: {val_filler.get('valore_reale', 0)}", val_filler)
+            add_dot(speech_frame, f"Voice Tremor: {val_tremor.get('valore_reale', 0):.0f} / 100", val_tremor)
+
+            # 3. TOTAL SPEECH GRAVITY (Grassetto, Maiuscolo)
+            ctk.CTkLabel(speech_frame, text="TOTAL SPEECH GRAVITY", font=font_titolo_box, text_color="#333333").pack(anchor="center", pady=(15, 5))
+
+            # 4. Calcolo della gravità totale per lo speech (da 0 a 100)
+            speech_gravity_raw = (
+                val_tremor.get('valore_calcolato', 0) * 0.4 +               # Jitter al 40%
+                val_long.get('valore_calcolato', 0) * 20 +                  # Pausa lunga: +20 punti
+                val_micro.get('valore_calcolato', 0) * 1.5 +                # Micro silenzi: impatto leggero
+                max(0, val_filler.get('valore_calcolato', 0) - 2) * 5 +     # Penalità se filler > 2
+                abs(val_vocal.get('valore_calcolato', 0) - 3.5) * 5         # Penalità se troppo distanti dalla fascia verde (3.5)
+            )
+            speech_percent = int(max(0, min(100, speech_gravity_raw)))
+
+            # 5. Barra colorata personalizzata
+            bar_canvas_s = ctk.CTkCanvas(speech_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
+            bar_canvas_s.pack(anchor="center", pady=(0, 0))
+
+            # Soglie per speech_gravity
+            speech_gravity_soglie = (5.0, 30.0, 60.0, 85.0)
+            segments_s = get_threshold_segments(canvas_w, canvas_h, speech_gravity_soglie)
+            
+            bar_canvas_s.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments_s[0][2], outline=segments_s[0][2])
+            bar_canvas_s.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments_s[-1][2], outline=segments_s[-1][2])
+            
+            for x_start, x_end, color in segments_s:
+                adjusted_start = max(x_start, canvas_h / 2)
+                adjusted_end = min(x_end, canvas_w - canvas_h / 2)
+                if adjusted_end > adjusted_start:
+                    bar_canvas_s.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
+
+            # Lineetta nera indicatore
+            marker_x_s = (speech_percent / 100) * canvas_w
+            bar_canvas_s.create_line(marker_x_s, -2, marker_x_s, canvas_h + 10, fill="black", width=4)
+
+            # Numero in percentuale sotto la barra
+            ctk.CTkLabel(speech_frame, text=f"{speech_percent}%", font=font_titolo_box, text_color="black").pack(anchor="center", pady=(0, 5))
+            
+            
             # ---- GAZE/FACE FRAME ----
             face_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
             face_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)

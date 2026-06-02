@@ -28,8 +28,24 @@ def analyze_voice_tremor(audio_path):
 def analyze_speech(audio_path):
     """Core function to extract data from a single audio file."""
     audio = AudioSegment.from_file(audio_path)
-    silences = detect_silence(audio, min_silence_len=500, silence_thresh=-45)
     
+    # 1. Calcoliamo la durata totale dell'audio in secondi
+    audio_duration_sec = len(audio) / 1000.0
+    
+    # 2. Rileviamo TUTTI i silenzi superiori a 250ms
+    all_silences = detect_silence(audio, min_silence_len=250, silence_thresh=-45)
+    
+    long_pauses_count = 0
+    micro_silences_count = 0
+    
+    # 3. Dividiamo i silenzi in due categorie calcolando la loro durata
+    for start, end in all_silences:
+        duration = end - start
+        if duration >= 4000:
+            long_pauses_count += 1
+        else:
+            micro_silences_count += 1
+            
     tremor_score = analyze_voice_tremor(audio_path)
     
     segments, _ = model.transcribe(
@@ -52,7 +68,9 @@ def analyze_speech(audio_path):
     
     return {
         "text": full_text,
-        "silence_count": len(silences),
+        "duration_seconds": audio_duration_sec,
+        "silence_count": long_pauses_count,            # Pause di panico (>= 4s)
+        "micro_silences_count": micro_silences_count,  # Frammentazione (250ms - 3999ms)
         "filler_found": {w: word_counts[w] for w in filler_words_target if word_counts[w] > 0},
         "vocal_fillers_found": {m: word_counts[m] for m in vocal_fillers_target if word_counts[m] > 0},
         "voice_tremor_percent": tremor_score
@@ -84,7 +102,9 @@ def process_and_print_speech_analysis(session_results):
             
             print(f"\nQUESTION: {question}")
             print(f"YOUR ANSWER: \"{analysis['text'].strip()}\"")
+            print(f"  > Audio Duration: {analysis['duration_seconds']:.1f}s")
             print(f"  > Long Pauses: {analysis['silence_count']}")
+            print(f"  > Micro Silences: {analysis['micro_silences_count']}")
             print(f"  > Vocal Fillers: {v_count} {analysis['vocal_fillers_found']}")
             print(f"  > Filler Words: {f_count} {analysis['filler_found']}")
             print(f"  > Voice Tremor: {tremor_100}/100")
@@ -100,7 +120,9 @@ def process_and_print_speech_analysis(session_results):
             
             # --- LA MAGIA: Arricchiamo il dizionario "result" esistente ---
             result["text"] = analysis['text'].strip()
+            result["audio_duration"] = analysis['duration_seconds']
             result["silence_count"] = analysis['silence_count']
+            result["micro_silences"] = analysis['micro_silences_count']
             result["vocal_fillers"] = v_count
             result["vocal_fillers_dict"] = analysis['vocal_fillers_found']
             result["filler_words"] = f_count
@@ -114,7 +136,9 @@ def process_and_print_speech_analysis(session_results):
             
             # Arricchiamo con valori a 0 in caso di errore
             result["text"] = "[Error: Audio transcription failed]"
+            result["audio_duration"] = 0.0
             result["silence_count"] = 0
+            result["micro_silences"] = 0
             result["vocal_fillers"] = 0
             result["vocal_fillers_dict"] = {}
             result["filler_words"] = 0
