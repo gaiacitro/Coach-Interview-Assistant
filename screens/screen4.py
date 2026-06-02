@@ -95,20 +95,20 @@ class InterviewAPI:
     # =================================================================
     '''
     def start_recording(self):
-        print("\n>>> [REC] Recording started! I am listening.")
+        print("\n>>> [REC] Audio recording started. Vision tracking + calibration already active.")
         max_duration = 300 
         self.recording_array = sd.rec(int(max_duration * self.fs), samplerate=self.fs, channels=1, dtype='int16')
         self.start_time = time.time()
         self.is_recording = True
         
-        # Avvia l'analisi visiva anche in modalità reale
-        self.vision_tracker.start() 
+        # MODIFICATO: Vision tracker è già avviato in get_next_question() durante la calibrazione 
 
     def stop_and_save_recording(self):
-        print(">>> [STOP] Recording stopped.")
+        print(">>> [STOP] Recording stopped. Calibration complete. Collecting CV data...")
         sd.stop()
         
         # Riceviamo il dizionario già impacchettato dal backend visivo!
+        # La calibrazione è stata completata durante i 3 secondi di attesa
         cv_data_dict = self.vision_tracker.stop()
         
         duration = time.time() - self.start_time
