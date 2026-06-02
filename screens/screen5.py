@@ -18,6 +18,36 @@ from config import (
     APP_FONT
 )
 
+
+def get_threshold_segments(canvas_w, canvas_h, soglie):
+    """
+    Genera i segmenti di una barra colorata basati su soglie percentuali.
+    Ritorna una lista di (x_start, x_end, color)
+    """
+    min_rosso, min_giallo, max_giallo, max_rosso = soglie
+    color_rosso = "#F44336"
+    color_arancione = "#FF9800"
+    color_verde = "#4CAF50"
+    
+    segments = []
+    
+    # Converti percentuali in pixel
+    def pct_to_px(pct):
+        return (pct / 100.0) * canvas_w
+    
+    threshold_points = [0, min_rosso, min_giallo, max_giallo, max_rosso, 100]
+    threshold_colors = [color_rosso, color_arancione, color_verde, color_arancione, color_rosso]
+    
+    for i in range(len(threshold_points) - 1):
+        x_start = pct_to_px(threshold_points[i])
+        x_end = pct_to_px(threshold_points[i + 1])
+        color = threshold_colors[i]
+        
+        if x_end > x_start:  # Solo se il segmento ha larghezza
+            segments.append((x_start, x_end, color))
+    
+    return segments
+
 class Screen5(ctk.CTkScrollableFrame):
     def __init__(self, parent, controller, data=None):
         super().__init__(parent, fg_color="transparent")
@@ -139,19 +169,22 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas = ctk.CTkCanvas(face_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas.pack(anchor="center", pady=(0, 0))
 
-            segment_w = canvas_w / 5
-            colors = ["#FE3939", "#FDB44E", "#79D25B", "#FDB44E", "#FE3939"] # Rosso, Giallo, Verde, Giallo, Rosso
+            # Soglie per head_total: (5.0, 25.0, 60.0, 85.0)
+            head_total_soglie = (5.0, 25.0, 60.0, 85.0)
+            segments = get_threshold_segments(canvas_w, canvas_h, head_total_soglie)
             
-            # Disegniamo i 5 segmenti con i due estremi arrotondati per ricreare l'effetto "pillola"
-            bar_canvas.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=colors[0], outline=colors[0])
-            bar_canvas.create_rectangle(canvas_h/2, 0, segment_w, canvas_h, fill=colors[0], outline=colors[0])
+            # Disegniamo gli archi arrotondati ai due estremi
+            bar_canvas.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments[0][2], outline=segments[0][2])
+            bar_canvas.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments[-1][2], outline=segments[-1][2])
             
-            bar_canvas.create_rectangle(segment_w, 0, segment_w*2, canvas_h, fill=colors[1], outline=colors[1])
-            bar_canvas.create_rectangle(segment_w*2, 0, segment_w*3, canvas_h, fill=colors[2], outline=colors[2])
-            bar_canvas.create_rectangle(segment_w*3, 0, segment_w*4, canvas_h, fill=colors[3], outline=colors[3])
-            
-            bar_canvas.create_rectangle(segment_w*4, 0, canvas_w - canvas_h/2, canvas_h, fill=colors[4], outline=colors[4])
-            bar_canvas.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=colors[4], outline=colors[4])
+            # Disegniamo i segmenti
+            for x_start, x_end, color in segments:
+                # Aggiustiamo i margini per gli archi
+                adjusted_start = max(x_start, canvas_h / 2)
+                adjusted_end = min(x_end, canvas_w - canvas_h / 2)
+                
+                if adjusted_end > adjusted_start:
+                    bar_canvas.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
 
             # Lineetta nera indicatore
             marker_x = (gaze_percent_clamped / 100) * canvas_w
@@ -183,16 +216,22 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas_h = ctk.CTkCanvas(hand_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas_h.pack(anchor="center", pady=(0, 0))
             
-            # Disegniamo i 5 segmenti colorati (le variabili colors e segment_w sono già dichiarate sopra)
-            bar_canvas_h.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=colors[0], outline=colors[0])
-            bar_canvas_h.create_rectangle(canvas_h/2, 0, segment_w, canvas_h, fill=colors[0], outline=colors[0])
+            # Soglie per hand_gravity: (5.0, 35.0, 55.0, 80.0)
+            hand_gravity_soglie = (5.0, 35.0, 55.0, 80.0)
+            segments_h = get_threshold_segments(canvas_w, canvas_h, hand_gravity_soglie)
             
-            bar_canvas_h.create_rectangle(segment_w, 0, segment_w*2, canvas_h, fill=colors[1], outline=colors[1])
-            bar_canvas_h.create_rectangle(segment_w*2, 0, segment_w*3, canvas_h, fill=colors[2], outline=colors[2])
-            bar_canvas_h.create_rectangle(segment_w*3, 0, segment_w*4, canvas_h, fill=colors[3], outline=colors[3])
+            # Disegniamo gli archi arrotondati ai due estremi
+            bar_canvas_h.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments_h[0][2], outline=segments_h[0][2])
+            bar_canvas_h.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments_h[-1][2], outline=segments_h[-1][2])
             
-            bar_canvas_h.create_rectangle(segment_w*4, 0, canvas_w - canvas_h/2, canvas_h, fill=colors[4], outline=colors[4])
-            bar_canvas_h.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=colors[4], outline=colors[4])
+            # Disegniamo i segmenti
+            for x_start, x_end, color in segments_h:
+                # Aggiustiamo i margini per gli archi
+                adjusted_start = max(x_start, canvas_h / 2)
+                adjusted_end = min(x_end, canvas_w - canvas_h / 2)
+                
+                if adjusted_end > adjusted_start:
+                    bar_canvas_h.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
 
             # Lineetta nera indicatore
             marker_x_h = (hand_percent_clamped / 100) * canvas_w
