@@ -75,13 +75,20 @@
         videoParla.currentTime = 0;
 
         videoParla.addEventListener('ended', function() {
-            // 1. Nascondi il video che parla (ora sarà istantaneo senza transizione)
-            videoParla.style.opacity = 0; 
-            videoParla.currentTime = 0; 
+            // 1. Diamo il comando di play al video in background
+            videoZitto.play(); 
             
-            // 2. SINCRONIZZAZIONE: Fai ripartire il video zitto dal primo fotogramma!
-            videoZitto.currentTime = 0;
-            videoZitto.play(); // Assicura che continui a riprodursi
+            // 2. Chiediamo al browser di aspettare il prossimo "frame" grafico
+            // prima di far sparire l'avatar che parla. Questo copre il tempo di "risveglio".
+            requestAnimationFrame(() => {
+                videoParla.style.opacity = 0; 
+                
+                // 3. Resettiamo il video parlato solo 50 millisecondi DOPO 
+                // che è diventato invisibile, per evitare scatti indesiderati.
+                setTimeout(() => {
+                    videoParla.currentTime = 0; 
+                }, 50); 
+            });
         });
 
         
@@ -122,7 +129,7 @@
                             
                         } else {
                             qDiv.className = "question-style"; 
-                            qDiv.innerText = response; 
+                            qDiv.innerText = response;
 
                             // --- AGGIUNTA FONDAMENTALE ---
                             // Mettiamo in pausa il video zitto e lo portiamo al fotogramma iniziale.

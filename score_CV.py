@@ -13,7 +13,6 @@ def valuta_metrica(valore_sec, tempo_tot, nome_metrica):
         "hand_general_time": (20.0, 40.0, 65.0, 85.0),
         "face_touch_time": (10.0, 20.0, 40.0, 60.0), 
         "face_overlap_time": (5.0, 10.0, 20.0, 40.0) 
-        #non ci sono i generali perche li studiamo a parte
     }
     
     # Sicurezza contro la divisione per zero
@@ -22,22 +21,17 @@ def valuta_metrica(valore_sec, tempo_tot, nome_metrica):
     
     # Estraiamo i 4 limiti
     min_rosso, min_giallo, max_giallo, max_rosso = soglie.get(nome_metrica, (0, 0, 100, 100))
-    
+    pallino = "●"
     # Assegnazione pallino e colore
     if percentuale < min_rosso:
-        pallino = "🔴"
         colore = "#F44336" # Rosso
     elif percentuale >= min_rosso and percentuale < min_giallo:
-        pallino = "🟡"
         colore = "#FF9800" # Giallo/Arancione
     elif percentuale >= min_giallo and percentuale <= max_giallo:
-        pallino = "🟢"
         colore = "#4CAF50" # Verde
     elif percentuale > max_giallo and percentuale <= max_rosso:
-        pallino = "🟡"
         colore = "#FF9800" # Giallo/Arancione
     else: 
-        pallino = "🔴"
         colore = "#F44336" # Rosso
         
     return {

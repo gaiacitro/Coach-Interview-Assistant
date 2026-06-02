@@ -1,4 +1,6 @@
 # utils.py
+import customtkinter as ctk
+from config import APP_FONT, TEXT_GREEN
 
 # --- I tuoi dati fittizi di test (PARTE 1) ---
 DEFAULT_INTERVIEW_DATA = [
@@ -123,3 +125,20 @@ def generate_report_text(data, final_score):
     testo_report += "- Negative: Try to reduce filler words like 'basically' and 'like'.\n"
 
     return testo_report
+
+
+def add_dot(parent_frame, label_text, val_dict):
+            font_normale = (APP_FONT, 14)
+            # Crea un contenitore invisibile orizzontale
+            row = ctk.CTkFrame(parent_frame, fg_color="transparent")
+            row.pack(anchor="center", pady=4)
+            
+            # Prepariamo i dati del pallino
+            colore_pallino = val_dict.get('colore', '#333333')
+            pallino = val_dict.get('pallino', '')
+            
+            # 1. Disegniamo PRIMA il pallino colorato (con uno spazietto a destra)
+            ctk.CTkLabel(row, text=f"{pallino} ", font=font_normale, text_color=colore_pallino).pack(side="left")
+            
+            # 2. Disegniamo DOPO il testo, che si affiancherà alla destra del pallino
+            ctk.CTkLabel(row, text=label_text, font=font_normale, text_color="#333333").pack(side="left")
