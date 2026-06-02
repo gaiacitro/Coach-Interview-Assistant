@@ -75,16 +75,15 @@
         videoParla.currentTime = 0;
 
         videoParla.addEventListener('ended', function() {
-            // 1. Diamo il comando di play al video in background
+            // 1. give the "play" command to the zitto video, which is already at the right frame and just waiting for this trigger to start moving again.
             videoZitto.play(); 
             
-            // 2. Chiediamo al browser di aspettare il prossimo "frame" grafico
-            // prima di far sparire l'avatar che parla. Questo copre il tempo di "risveglio".
+            // 2. ask the browser to execute the following code right before the next repaint, which ensures that the zitto video starts playing immediately after the parla video finishes, without any visual delay or stutter.
+            // before repaint, the browser will have already registered the "play" command on the zitto video, so it will be ready to show the first frame of the zitto video as soon as the parla video becomes invisible.
             requestAnimationFrame(() => {
                 videoParla.style.opacity = 0; 
                 
-                // 3. Resettiamo il video parlato solo 50 millisecondi DOPO 
-                // che è diventato invisibile, per evitare scatti indesiderati.
+                // 3. reset the parla video to the beginning, but we do it inside a setTimeout with a very short delay (50ms)
                 setTimeout(() => {
                     videoParla.currentTime = 0; 
                 }, 50); 
@@ -104,10 +103,9 @@
                         let topBar = document.getElementById('top-bar');
 
                         if (response === "END") {
-                            // 1. DISATTIVIAMO L'INTERVISTA
-                            interviewState = "analyzing";
                             
-                            // 2. CREIAMO LA SCHERMATA DI CARICAMENTO
+                            interviewState = "analyzing";
+
                             topBar.style.top = "40%"; // Sposta il testo al centro dello schermo
                             qDiv.className = "instruction-style";
                             qDiv.innerText = "Calculating results...";
@@ -115,11 +113,9 @@
                             infoDiv.innerText = "Analyzing speech, pauses, and tremor...";
                             loaderDiv.style.display = "block"; // Mostra l'animazione
                             
-                            // Scurisce il video in background per dare risalto al caricamento
                             videoParla.style.opacity = 0;
                             videoZitto.style.opacity = 0.4;
-                            
-                            // 3. AVVIAMO L'ANALISI E CHIUDIAMO IN AUTOMATICO
+
                             setTimeout(() => {
                                 window.pywebview.api.run_speech_analysis().then(() => {
                                     // Appena finisce di macinare i dati, si chiude da solo!
@@ -131,19 +127,14 @@
                             qDiv.className = "question-style"; 
                             qDiv.innerText = response;
 
-                            // --- AGGIUNTA FONDAMENTALE ---
-                            // Mettiamo in pausa il video zitto e lo portiamo al fotogramma iniziale.
-                            // Essendo nascosto dal video parlato, l'utente non vedrà questo "scatto".
                             videoZitto.pause();
                             videoZitto.currentTime = 0;
-                            // -----------------------------
 
                             videoParla.style.opacity = 1;
                             videoParla.play();
                         }
                     });
                 } 
-                // Non serve più l'else-if "done" perché la finestra si chiude automaticamente!
             }
         });
     </script>

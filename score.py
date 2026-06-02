@@ -1,176 +1,123 @@
-# score_CV.py
+# score.py
 
-def valuta_metrica(valore_sec, tempo_tot, nome_metrica):
-    """
-    Calcola la percentuale e restituisce il pallino colorato e il colore del testo.
-    """
-    # Soglie: (min_rosso, min_giallo, max_giallo, max_rosso)
-    soglie = {
-        "eye_gaze_time": (10.0, 30.0, 60.0, 85.0),
-        "face_tremor_time": (15.0, 35.0, 65.0, 85.0),
-        "head_movement_time": (20.0, 40.0, 65.0, 85.0),
-        "head_down": (20.0, 40.0, 65.0, 85.0),
-        "hand_general_time": (20.0, 40.0, 65.0, 85.0),
-        "face_touch_time": (10.0, 20.0, 40.0, 60.0), 
-        "hand_gravity" : (5.0, 35.0, 55.0, 80.0),
-        "head_total": (5.0, 25.0, 60.0, 85.0),
-        "face_overlap_time": (5.0, 10.0, 20.0, 40.0) 
+def cv_metric_evaluation(sec_value, total_time, metric_name):
+    # Thresholds: (min_red, min_yellow, max_yellow, max_red)
+    thresholds = {
+        "eye_gaze_time": (-1.0, -1.0, 30.0, 60.0),
+        "face_tremor_time": (-1.0, -1.0, 35.0, 65.0),
+        "head_movement_time": (-1.0, -1.0, 40.0, 65.0),
+        "head_down": (-1.0, -1.0, 40.0, 65.0),
+        "hand_general_time": (10.0, 20.0, 60.0, 85.0), 
+        "face_touch_time": (-1.0, -1.0, 20.0, 40.0), 
+        "hand_gravity" : (-1.0, -1.0, 35.0, 55.0),
+        "head_total": (-1.0, -1.0, 25.0, 60.0),
+        "face_overlap_time": (-1.0, -1.0, 10.0, 20.0) 
     }
     
-    # Sicurezza contro la divisione per zero
-    tempo_tot = max(tempo_tot, 0.1)
-    percentuale = (valore_sec / tempo_tot) * 100
+    total_time = max(total_time, 0.1)
+    percentage = (sec_value / total_time) * 100
     
-    # Estraiamo i 4 limiti
-    min_rosso, min_giallo, max_giallo, max_rosso = soglie.get(nome_metrica, (0, 0, 100, 100))
-    pallino = "●"
-    # Assegnazione pallino e colore
-    if percentuale < min_rosso:
-        colore = "#F44336" # Rosso
-    elif percentuale >= min_rosso and percentuale < min_giallo:
-        colore = "#FF9800" # Giallo/Arancione
-    elif percentuale >= min_giallo and percentuale <= max_giallo:
-        colore = "#4CAF50" # Verde
-    elif percentuale > max_giallo and percentuale <= max_rosso:
-        colore = "#FF9800" # Giallo/Arancione
+    min_red, min_yellow, max_yellow, max_red = thresholds.get(metric_name, (0, 0, 100, 100))
+    dot = "●"
+    
+    if percentage < min_red:
+        color = "#F44336" 
+    elif percentage >= min_red and percentage < min_yellow:
+        color = "#FF9800" 
+    elif percentage >= min_yellow and percentage <= max_yellow:
+        color = "#4CAF50" 
+    elif percentage > max_yellow and percentage <= max_red:
+        color = "#FF9800" 
     else: 
-        colore = "#F44336" # Rosso
+        color = "#F44336" 
         
     return {
-        "secondi": round(valore_sec, 1),
-        "percentuale": round(percentuale, 1),
-        "pallino": pallino,
-        "colore": colore
+        "real_value": round(sec_value, 1),
+        "calculated_value": round(percentage, 1),
+        "dot": dot,
+        "color": color   # <--- Ora è in inglese!
     }
 
-def valuta_performance_cv(cv_data_dict):
-    """
-    Raccoglie tutti i dati di una domanda, li valuta uno a uno e li impacchetta per l'interfaccia.
-    """
+def cv_performance_evaluation(cv_data_dict):
     face_data = cv_data_dict.get("gaze_face", {})
     hand_data = cv_data_dict.get("hand_gesture", {})
     
-    tempo_tot = max(face_data.get("tempo_totale_risposta", 1.0), 0.1)
+    total_time = max(face_data.get("tempo_totale_risposta", 1.0), 0.1) 
     
-    report_valutato = {}
+    evaluated_report = {}
     
-    # Valutiamo il Viso
-    report_valutato["eye_gaze"] = valuta_metrica(face_data.get('eye_gaze_time', 0.0), tempo_tot, "eye_gaze_time")
-    report_valutato["head_movement"] = valuta_metrica(face_data.get('head_movement_time', 0.0), tempo_tot, "head_movement_time")
-    report_valutato["head_down"] = valuta_metrica(face_data.get('head_down', 0.0), tempo_tot, "head_down")
-    report_valutato["face_tremor"] = valuta_metrica(face_data.get('face_tremor_time', 0.0), tempo_tot, "face_tremor_time")
+    evaluated_report["eye_gaze"] = cv_metric_evaluation(face_data.get('eye_gaze_time', 0.0), total_time, "eye_gaze_time")
+    evaluated_report["head_movement"] = cv_metric_evaluation(face_data.get('head_movement_time', 0.0), total_time, "head_movement_time")
+    evaluated_report["head_down"] = cv_metric_evaluation(face_data.get('head_down', 0.0), total_time, "head_down")
+    evaluated_report["face_tremor"] = cv_metric_evaluation(face_data.get('face_tremor_time', 0.0), total_time, "face_tremor_time")
 
-    # Valutiamo le Mani
-    report_valutato["hand_general"] = valuta_metrica(hand_data.get('hand_general_time', 0.0), tempo_tot, "hand_general_time")
-    report_valutato["face_touch"] = valuta_metrica(hand_data.get('face_touch_time', 0.0), tempo_tot, "face_touch_time")
-    report_valutato["face_overlap"] = valuta_metrica(hand_data.get('face_overlap_time', 0.0), tempo_tot, "face_overlap_time")
+    evaluated_report["hand_general"] = cv_metric_evaluation(hand_data.get('hand_general_time', 0.0), total_time, "hand_general_time")
+    evaluated_report["face_touch"] = cv_metric_evaluation(hand_data.get('face_touch_time', 0.0), total_time, "face_touch_time")
+    evaluated_report["face_overlap"] = cv_metric_evaluation(hand_data.get('face_overlap_time', 0.0), total_time, "face_overlap_time")
     
-    return report_valutato   
-    #dizionario con chiavi: eye_gaze, head_movement, head_down, hand_general, face_touch, face_overlap dove
-        # ognuna è un dizionario con chiavi: secondi, percentuale, pallino, colore
-    
+    return evaluated_report   
 
-
-def valuta_metrica_speech(valore, parametro_base, nome_metrica):
-    """
-    Calcola il rate corretto (su 100 parole, al minuto o assoluto) 
-    e restituisce il pallino colorato e le statistiche per lo speech.
-    """
-    # Soglie: (min_rosso, min_giallo, max_giallo, max_rosso)
-    # Nota: per metriche in cui "0" è il valore perfetto, min_rosso e min_giallo sono settati a -1.0 per non essere mai attivati.
-    soglie = {
-        "vocal_fillers": (1.0, 2.0, 5.0, 8.0),     # Campana: <1 Rosso, 2-5 Verde, 6-8 Giallo, >8 Rosso
-        "filler_words": (-1.0, -1.0, 2.0, 5.0),    # Lineare: 0-2 Verde, 3-5 Giallo, >5 Rosso
-        "micro_silences": (-1.0, -1.0, 5.0, 12.0), # Lineare: 0-5 Verde, 6-12 Giallo, >12 Rosso
-        "long_pauses": (-1.0, -1.0, 0.0, 1.0),     # Assoluto: 0 Verde, 1 Giallo, >=2 Rosso
-        "tremor": (-1.0, -1.0, 33.0, 66.0)         # Assoluto: <33 Verde, 33-66 Giallo, >66 Rosso
+def speech_metric_evaluation(value, base_parameter, metric_name):
+    thresholds = {
+        "vocal_fillers": (1.0, 2.0, 5.0, 8.0),     
+        "filler_words": (-1.0, -1.0, 2.0, 5.0),    
+        "micro_silences": (-1.0, -1.0, 5.0, 12.0), 
+        "long_pauses": (-1.0, -1.0, 0.0, 1.0),     
+        "tremor": (-1.0, -1.0, 33.0, 66.0)         
     }
     
-    # 1. Calcoliamo il "valore_calcolato" in base al tipo di metrica
-    if nome_metrica in ["vocal_fillers", "filler_words"]:
-        # Calcolo: rate ogni 100 parole
-        base_parole = max(parametro_base, 1) # evita divisione per zero
-        valore_calcolato = (valore / base_parole) * 100
-        
-    elif nome_metrica == "micro_silences":
-        # Calcolo: rate al minuto
-        base_secondi = max(parametro_base, 0.1)
-        valore_calcolato = (valore / base_secondi) * 60
-        
+    if metric_name in ["vocal_fillers", "filler_words"]:
+        word_base = max(base_parameter, 1) 
+        calculated_value = (value / word_base) * 100
+    elif metric_name == "micro_silences":
+        base_second = max(base_parameter, 0.1)
+        calculated_value = (value / base_second) * 60
     else:
-        # long_pauses e tremor sono valori assoluti, non vanno divisi
-        valore_calcolato = valore
-        
-    # 2. Estraiamo i 4 limiti
-    min_rosso, min_giallo, max_giallo, max_rosso = soglie.get(nome_metrica, (0, 0, 100, 100))
-    pallino = "●"
+        calculated_value = value
+
+    min_red, min_yellow, max_yellow, max_red = thresholds.get(metric_name, (0, 0, 100, 100))
+    dot = "●" 
     
-    # 3. Assegnazione colore in base ai limiti
-    if valore_calcolato < min_rosso:
-        colore = "#F44336" # Rosso (Es. 0 vocal fillers -> troppo robotico)
-    elif valore_calcolato >= min_rosso and valore_calcolato < min_giallo:
-        colore = "#FF9800" # Giallo (Sotto la soglia verde)
-    elif valore_calcolato >= min_giallo and valore_calcolato <= max_giallo:
-        colore = "#4CAF50" # Verde (Fascia ideale)
-    elif valore_calcolato > max_giallo and valore_calcolato <= max_rosso:
-        colore = "#FF9800" # Giallo (Sopra la soglia verde)
+    if calculated_value < min_red:
+        color = "#F44336" 
+    elif calculated_value >= min_red and calculated_value < min_yellow:
+        color = "#FF9800" 
+    elif calculated_value >= min_yellow and calculated_value <= max_yellow:
+        color = "#4CAF50"  
+    elif calculated_value > max_yellow and calculated_value <= max_red:
+        color = "#FF9800"  
     else: 
-        colore = "#F44336" # Rosso (Grave)
+        color = "#F44336" 
         
     return {
-        "valore_reale": valore,
-        "valore_calcolato": round(valore_calcolato, 1),
-        "pallino": pallino,
-        "colore": colore
+        "real_value": value,  
+        "calculated_value": round(calculated_value, 1),
+        "dot": dot,
+        "color": color        
     }
 
-def valuta_performance_speech(speech_data_dict):
-    """
-    Raccoglie tutti i dati speech di una domanda, conta le parole totali
-    e impacchetta ogni statistica con il suo colore.
-    """
-    durata_sec = speech_data_dict.get("audio_duration", 1.0)
-    testo_risposta = speech_data_dict.get("text", "")
+def speech_performance_evaluation(speech_data_dict):
+    sec_duration = speech_data_dict.get("audio_duration", 1.0)
+    answer_text = speech_data_dict.get("text", "")
     
-    # Calcoliamo quante parole ha detto l'utente nella risposta
-    # (Se la trascrizione è vuota, consideriamo 1 parola per evitare errori matematici)
-    total_words = max(len(testo_risposta.split()), 1)
+    total_words = max(len(answer_text.split()), 1)
     
-    report_valutato = {}
+    evaluated_report = {}
     
-    # 1. Vocal Fillers (Calcolati sulle parole totali)
-    report_valutato["vocal_fillers"] = valuta_metrica_speech(
-        speech_data_dict.get('vocal_fillers', 0), 
-        total_words, 
-        "vocal_fillers"
+    evaluated_report["vocal_fillers"] = speech_metric_evaluation(
+        speech_data_dict.get('vocal_fillers', 0), total_words, "vocal_fillers"
+    )
+    evaluated_report["filler_words"] = speech_metric_evaluation(
+        speech_data_dict.get('filler_words', 0), total_words, "filler_words"
+    )
+    evaluated_report["micro_silences"] = speech_metric_evaluation(
+        speech_data_dict.get('micro_silences', 0), sec_duration, "micro_silences"
+    )
+    evaluated_report["long_pauses"] = speech_metric_evaluation(
+        speech_data_dict.get('silence_count', 0), None, "long_pauses"
+    )
+    evaluated_report["tremor"] = speech_metric_evaluation(
+        speech_data_dict.get('tremor', 0), None, "tremor"
     )
     
-    # 2. Filler Words (Calcolate sulle parole totali)
-    report_valutato["filler_words"] = valuta_metrica_speech(
-        speech_data_dict.get('filler_words', 0), 
-        total_words, 
-        "filler_words"
-    )
-    
-    # 3. Micro Silenzi (Calcolati sulla durata in secondi)
-    report_valutato["micro_silences"] = valuta_metrica_speech(
-        speech_data_dict.get('micro_silences', 0), 
-        durata_sec, 
-        "micro_silences"
-    )
-    
-    # 4. Silenzi Lunghi / Panico (Valore assoluto, la base non serve)
-    report_valutato["long_pauses"] = valuta_metrica_speech(
-        speech_data_dict.get('silence_count', 0), 
-        None, 
-        "long_pauses"
-    )
-    
-    # 5. Jitter / Tremore (Già scalato da 0 a 100, la base non serve)
-    report_valutato["tremor"] = valuta_metrica_speech(
-        speech_data_dict.get('tremor', 0), 
-        None, 
-        "tremor"
-    )
-    
-    return report_valutato
+    return evaluated_report

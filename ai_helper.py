@@ -1,21 +1,19 @@
 # ai_helper.py
 import os
 from dotenv import load_dotenv
-from google import genai # <--- La NUOVA libreria
+from google import genai 
 
-# Carica i segreti dal file .env
+# load environment variables from .env file
 load_dotenv()
 
-# Prende la chiave in modo sicuro
+# get the Gemini API key in a secure way from environment variables
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
-
-# Configura il client secondo le nuove direttive di Google
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 def get_reformulated_text(original_text):
     """
-    Invia il testo a Gemini e restituisce la frase pulita da filler words ed errori.
-    Restituisce None se c'è un errore di connessione.
+    Send the text to Gemini, and it returns the sentence with filler words and errors removed.
+    Returns None if there is a connection error.
     """
     try:
         prompt = f"""
@@ -30,7 +28,6 @@ def get_reformulated_text(original_text):
         Candidate's original text: "{original_text}"
         """
         
-        # Facciamo la richiesta usando il nuovissimo modello gemini-2.5-flash
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt
@@ -39,5 +36,5 @@ def get_reformulated_text(original_text):
         return response.text.strip()
         
     except Exception as e:
-        print(f"[ERRORE AI] Problema con Gemini: {e}")
+        print(f"[ERROR AI] Problem with Gemini: {e}")
         return None

@@ -1,5 +1,5 @@
-# Dizionario strutturato di suggerimenti per le metriche di analisi video
-# Le chiavi corrispondono ai nomi in cv_data_dict (union_face_hands.py)
+# Structured dictionary of suggestions for video analysis metrics
+# The keys correspond to the names in cv_data_dict (union_face_hands.py)
 
 SUGGESTIONS = {
     

@@ -1,10 +1,13 @@
 # main.py
 import customtkinter as ctk
-
+import os
 from screens.screen1 import Screen1
 from screens.screen2_3 import Screen2_3
 from screens.screen5 import Screen5
 from config import CARD_BG, APP_FONT, TEXT_GREEN, TEXT_SUB  # <-- 1. Importiamo il colore di sfondo per le card
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['GLOG_minloglevel'] = '3'
 
 class InterviewApp(ctk.CTk):
     def __init__(self):
@@ -13,17 +16,10 @@ class InterviewApp(ctk.CTk):
 
         ctk.set_appearance_mode("light")
         
-        # 2. Impostiamo una dimensione fissa e compatta per la finestra
         self.geometry("1050x800")
-        
-        # (Opzionale) Se vuoi impedire all'utente di ridimensionare la finestra 
-        # rovinando le proporzioni della tua grafica, scommenta questa riga:
-        # self.resizable(False, False)
-        
-        # 3. TRUCCO ANGOLI: Impostiamo lo sfondo della finestra base uguale a quello della card
+
         self.configure(fg_color=CARD_BG)
-        
-        # 4. Anche il container principale prende il colore panna invece di "white"
+
         self.container = ctk.CTkFrame(self, fg_color=CARD_BG)
         self.container.pack(fill="both", expand=True)
         
@@ -45,9 +41,7 @@ class InterviewApp(ctk.CTk):
         elif screen_name == "Screen2Uni":
             Screen2_3(self.container, self, mode="uni")
             
-        # =======================================================
-        # SCHERMATA DI CARICAMENTO & AVVIO INTERVISTA
-        # =======================================================
+        ## Loading screen before the interview
         elif screen_name == "LoadingInterview":
             # Usiamo CARD_BG anche qui per continuità visiva
             loading_frame = ctk.CTkFrame(self.container, fg_color=CARD_BG)
@@ -73,7 +67,7 @@ class InterviewApp(ctk.CTk):
             
             self.after(100, start_interview)
             
-        # =======================================================
+        ##
             
         elif screen_name == "Screen5":
             Screen5(self.container, self, data=data)
