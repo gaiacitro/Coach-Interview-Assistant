@@ -45,9 +45,12 @@ class InterviewAPI:
             self.current_q_index += 1
             
             print(f"\n--- QUESTION {self.current_q_index}: {q} ---")
-            print(">>> The avatar is speaking. Recording will start in 3 seconds...")
+            print(">>> The avatar is speaking. Calibration in progress for 3 seconds...")
             
-            # Start the 3-second timer
+            # MODIFICATO: Avvia la calibrazione SUBITO mentre l'avatar legge la domanda
+            self.vision_tracker.start()
+            
+            # Start the 3-second timer per iniziare la registrazione audio
             self.recording_timer = threading.Timer(3.0, self.start_recording)
             self.recording_timer.start()
             
@@ -60,17 +63,17 @@ class InterviewAPI:
     # VERSION 1: TEST MODE (MOCK RECORDING) - CURRENTLY ACTIVE
     # =================================================================
     def start_recording(self):
-        print("\n>>> [REC - TEST MODE] Simulation started. Real audio is NOT recorded.")
+        print("\n>>> [REC - TEST MODE] Audio recording started. Vision tracking + calibration already active.")
         self.start_time = time.time()
         self.is_recording = True
-        
-        # Avvia l'analisi visiva completa (una sola webcam aperta)
-        self.vision_tracker.start() # <--- MODIFICATO
+        # MODIFICATO: Vision tracker è già avviato in get_next_question() durante la calibrazione
+        # Qui facciamo solo marcare l'inizio dell'audio
 
     def stop_and_save_recording(self):
-        print(">>> [STOP - TEST MODE] Simulation stopped.")
+        print(">>> [STOP] Recording stopped. Calibration complete. Collecting CV data...")
 
         # Riceviamo il dizionario già impacchettato dal backend visivo
+        # La calibrazione è stata completata durante i 3 secondi di attesa
         cv_data_dict = self.vision_tracker.stop()
 
         if self.current_q_index % 2 != 0:
