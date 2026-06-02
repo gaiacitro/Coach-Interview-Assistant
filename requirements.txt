@@ -18,5 +18,5 @@ praat-parselmouth
 pyaudio
 
 #ia
-google-generativeai
+google-genai
 python-dotenv

@@ -1,14 +1,16 @@
 # ai_helper.py
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai # <--- La NUOVA libreria
 
 # Carica i segreti dal file .env
 load_dotenv()
 
 # Prende la chiave in modo sicuro
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
-genai.configure(api_key=GEMINI_API_KEY)
+
+# Configura il client secondo le nuove direttive di Google
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 def get_reformulated_text(original_text):
     """
@@ -16,9 +18,6 @@ def get_reformulated_text(original_text):
     Restituisce None se c'è un errore di connessione.
     """
     try:
-        # Usiamo il modello flash (il più veloce in assoluto)
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
-        
         prompt = f"""
         You are an expert interview coach. Rewrite the following sentence spoken by a candidate during an interview. 
         Your goal is to fix grammatical errors, remove stutters, and eliminate filler words (like 'um', 'uh', 'basically', 'like', 'so'). 
@@ -31,7 +30,12 @@ def get_reformulated_text(original_text):
         Candidate's original text: "{original_text}"
         """
         
-        response = model.generate_content(prompt)
+        # Facciamo la richiesta usando il nuovissimo modello gemini-2.5-flash
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
+        
         return response.text.strip()
         
     except Exception as e:
