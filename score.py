@@ -3,15 +3,15 @@
 def cv_metric_evaluation(sec_value, total_time, metric_name):
     # Thresholds: (min_red, min_yellow, max_yellow, max_red)
     thresholds = {
-        "eye_gaze_time": (-1.0, -1.0, 30.0, 60.0),
-        "face_tremor_time": (-1.0, -1.0, 35.0, 65.0),
-        "head_movement_time": (-1.0, -1.0, 40.0, 65.0),
-        "head_down": (-1.0, -1.0, 40.0, 65.0),
-        "hand_general_time": (10.0, 20.0, 60.0, 85.0), 
-        "face_touch_time": (-1.0, -1.0, 20.0, 40.0), 
-        "hand_gravity" : (-1.0, -1.0, 35.0, 55.0),
-        "head_total": (-1.0, -1.0, 25.0, 60.0),
-        "face_overlap_time": (-1.0, -1.0, 10.0, 20.0) 
+        "eye_gaze_time": (10.0, 30.0, 60.0, 85.0),
+        "face_tremor_time": (15.0, 35.0, 65.0, 85.0),
+        "head_movement_time": (20.0, 40.0, 65.0, 85.0),
+        "head_down": (20.0, 40.0, 65.0, 85.0),
+        "hand_general_time": (20.0, 40.0, 65.0, 85.0),
+        "face_touch_time": (10.0, 20.0, 40.0, 60.0), 
+        "hand_gravity" : (5.0, 35.0, 55.0, 80.0),
+        "head_total": (5.0, 25.0, 60.0, 85.0),
+        "face_overlap_time": (5.0, 10.0, 20.0, 40.0)  
     }
     
     total_time = max(total_time, 0.1)
