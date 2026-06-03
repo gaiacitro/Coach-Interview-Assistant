@@ -137,12 +137,20 @@ class Screen5(ctk.CTkScrollableFrame):
             ctk.CTkLabel(speech_frame, text="🎤 Speech Analysis", font=box_title_font, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
             
             report_speech = speech_performance_evaluation(item)
-            
+            #calculation of time over minutes
+            sec_duration = max(item.get("audio_duration", 1.0), 0.1)
+            t_m = sec_duration / 60.0
+
             val_long = report_speech.get("long_pauses", {})
             val_micro = report_speech.get("micro_silences", {})
             val_vocal = report_speech.get("vocal_fillers", {})
             val_filler = report_speech.get("filler_words", {})
             val_tremor = report_speech.get("tremor", {})
+
+            long_pm = val_long.get('real_value', 0) / t_m if t_m > 0 else 0
+            micro_pm = val_micro.get('real_value', 0) / t_m if t_m > 0 else 0
+            filler_pm = val_filler.get('real_value', 0) / t_m if t_m > 0 else 0
+            vocal_pm = val_vocal.get('real_value', 0) / t_m if t_m > 0 else 0
 
             #statistics with colored dots
             add_dot(speech_frame, f"Long Pauses: {val_long.get('real_value', 0)}", val_long)
@@ -153,14 +161,15 @@ class Screen5(ctk.CTkScrollableFrame):
 
             # total speech gravity
             ctk.CTkLabel(speech_frame, text="TOTAL SPEECH GRAVITY", font=box_title_font, text_color="#333333").pack(anchor="center", pady=(15, 5))
-
+            
+            
             # compute the speech gravity score
             speech_gravity_raw = (
-                val_tremor.get('calculated_value', 0) * 0.4 +               
-                val_long.get('calculated_value', 0) * 20 +                  
-                val_micro.get('calculated_value', 0) * 1.5 +                
-                max(0, val_filler.get('calculated_value', 0) - 2) * 5 +     
-                abs(val_vocal.get('calculated_value', 0) - 3.5) * 5         #####va bene?
+                (val_tremor.get('calculated_value', 0) * 0.4) +               
+                (long_pm * 25) +                  
+                (micro_pm * 1.5) +                
+                (max(0, filler_pm - 2) * 4) +     
+                (max(0, vocal_pm - 3) * 4)       
             )
             speech_percent = int(max(0, min(100, speech_gravity_raw)))
 
