@@ -4,8 +4,7 @@ import os
 from screens.screen1 import Screen1
 from screens.screen2_3 import Screen2_3
 from screens.screen5 import Screen5
-from config import CARD_BG, APP_FONT, TEXT_GREEN, TEXT_SUB  # <-- 1. Importiamo il colore di sfondo per le card
-
+from config import CARD_BG, APP_FONT, TEXT_GREEN, TEXT_SUB  
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['GLOG_minloglevel'] = '3'
 
@@ -43,7 +42,6 @@ class InterviewApp(ctk.CTk):
             
         ## Loading screen before the interview
         elif screen_name == "LoadingInterview":
-            # Usiamo CARD_BG anche qui per continuità visiva
             loading_frame = ctk.CTkFrame(self.container, fg_color=CARD_BG)
             loading_frame.pack(expand=True, fill="both")
             
