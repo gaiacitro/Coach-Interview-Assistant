@@ -216,7 +216,7 @@ class Screen5(ctk.CTkScrollableFrame):
             # total gaze gravity 
             ctk.CTkLabel(face_frame, text="TOTAL GAZE GRAVITY", font=box_title_font, text_color="#333333").pack(anchor="center", pady=(15, 5))
 
-            gaze_percent = int(cv_face.get('head_total', 0.0))
+            gaze_percent = int(report_cv.get('head_total', 0.0))
             gaze_percent_clamped = max(0, min(100, gaze_percent)) # Limita tra 0 e 100 per non far uscire la lineetta dal disegno
             
             # customized colored bar
@@ -263,7 +263,7 @@ class Screen5(ctk.CTkScrollableFrame):
             # total hand gesture gravity
             ctk.CTkLabel(hand_frame, text="TOTAL GESTURE GRAVITY", font=box_title_font, text_color="#333333").pack(anchor="center", pady=(15, 5))
 
-            hand_percent = int(cv_hand.get('hand_gravity', 0.0))
+            hand_percent = int(report_cv.get('hand_gravity', 0.0))
             hand_percent_clamped = max(0, min(100, hand_percent))
             
             # colored bar with thresholds for hand_gravity

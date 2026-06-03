@@ -258,27 +258,21 @@ class UnifiedVisionTracker:
         if self.thread:
             self.thread.join(timeout=1.0)
         
-        safe_total_time = max(self.total_time_answer, 0.1)
-        
-        head_total_number = (0.3 * (self.head_down_time)**2 + 0.5 * self.head_moved_time) / safe_total_time * 100
-        hand_gravity_number = (0.6 * (self.hand_general_time - self.hands_above_chin_time) + 0.8 * (self.hands_above_chin_time - self.box_overlap_time) + 0.3 * (self.box_overlap_time)**2) / safe_total_time * 100
-        
-        # Package CV data
+        # Package CV data (Solo dati grezzi, niente formule qui!)
         cv_data_dict = {
             "gaze_face": {
                 "total_time_answer": self.total_time_answer,
                 "eye_gaze_time": self.eyes_turned_time,
                 "face_tremor_time": self.face_instability_time,
                 "head_movement_time": self.head_moved_time,
-                "head_down": self.head_down_time,
-                "head_total": min(head_total_number, 100)
+                "head_down": self.head_down_time
             },
             "hand_gesture": {
                 "total_time_answer": self.total_time_answer,
                 "hand_general_time": self.hand_general_time,
+                "hands_above_chin_time": self.hands_above_chin_time, # Aggiunto per poter fare il calcolo in score.py
                 "face_touch_time": max(0, self.hands_above_chin_time - self.box_overlap_time),
-                "face_overlap_time": self.box_overlap_time,
-                "hand_gravity": min(hand_gravity_number, 100) 
+                "face_overlap_time": self.box_overlap_time
             }
         }
         return cv_data_dict

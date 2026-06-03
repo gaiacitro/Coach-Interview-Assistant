@@ -35,16 +35,30 @@ def cv_metric_evaluation(sec_value, total_time, metric_name):
         "real_value": round(sec_value, 1),
         "calculated_value": round(percentage, 1),
         "dot": dot,
-        "color": color   # <--- Ora è in inglese!
+        "color": color   
     }
 
 def cv_performance_evaluation(cv_data_dict):
     face_data = cv_data_dict.get("gaze_face", {})
     hand_data = cv_data_dict.get("hand_gesture", {})
     
-    total_time = max(face_data.get("tempo_totale_risposta", 1.0), 0.1) 
+    total_time = max(face_data.get("total_time_answer", 1.0), 0.1) 
     
+    # --- head total e hand gravity ---
+    head_down_time = face_data.get('head_down', 0.0)
+    head_moved_time = face_data.get('head_movement_time', 0.0)
+    head_total_raw = (0.3 * (head_down_time)**2 + 0.5 * head_moved_time) / total_time * 100
+    
+    hand_general_time = hand_data.get('hand_general_time', 0.0)
+    hands_above_chin_time = hand_data.get('hands_above_chin_time', 0.0)
+    box_overlap_time = hand_data.get('face_overlap_time', 0.0)
+    hand_gravity_raw = (0.6 * (hand_general_time - hands_above_chin_time) + 0.8 * (hands_above_chin_time - box_overlap_time) + 0.3 * (box_overlap_time)**2) / total_time * 100
+    # -------------------------------------------------
+
     evaluated_report = {}
+    
+    evaluated_report["head_total"] = min(head_total_raw, 100.0)
+    evaluated_report["hand_gravity"] = min(hand_gravity_raw, 100.0)
     
     evaluated_report["eye_gaze"] = cv_metric_evaluation(face_data.get('eye_gaze_time', 0.0), total_time, "eye_gaze_time")
     evaluated_report["head_movement"] = cv_metric_evaluation(face_data.get('head_movement_time', 0.0), total_time, "head_movement_time")
