@@ -24,3 +24,29 @@ https://www.roselab.sci.waseda.ac.jp/resources/file/madissertation.pdf
 
 Speech Under Stress: A Machine Learning Approach to Detecting Public Speaking Anxiety Through Acoustic Features – A Pilot Study
 https://link.springer.com/chapter/10.1007/978-3-032-14674-8_35
+
+The Impact of Nonverbal Behavior in the Job Interview
+https://www.researchgate.net/publication/282849027_The_Impact_of_Nonverbal_Behavior_in_the_Job_Interview
+
+Personality Traits Estimation Based on Job Interview Video Analysis: Importance of Human Nonverbal Cues Detection
+https://www.mdpi.com/2504-2289/8/12/173
+
+Success in Interviews - How to Use Psychology to Gain that Job!
+https://www.open.edu/openlearn/health-sports-psychology/psychology/success-interviews-how-use-psychology-gain-job
+
+Nonverbal Cue Analysis in Video Interviews
+https://www.researchgate.net/publication/392404491_Nonverbal_Cue_Analysis_in_Video_Interviews
+
+
+Multi-Modal Method for Candidate Interview Assessment Based on Computer Vision and Large Language Models
+https://www.mdpi.com/2504-2289/10/4/106
+
+Eye Contact During An Interview: How Much is Too Much?
+https://interviewfocus.com/eye-contact-during-interview/
+
+Eye Contact in Consulting Interviews: Strategy Guide
+https://www.casebasix.com/pages/eye-contact-consulting-interviews
+
+
+
+
