@@ -47,12 +47,12 @@ def cv_performance_evaluation(cv_data_dict):
     # --- head total e hand gravity ---
     head_down_time = face_data.get('head_down', 0.0)
     head_moved_time = face_data.get('head_movement_time', 0.0)
-    head_total_raw = (0.3 * (head_down_time)**2 + 0.5 * head_moved_time) / total_time * 100
+    head_total_raw = (1.5* (head_down_time) + 0.5 * head_moved_time) / total_time * 100
     
     hand_general_time = hand_data.get('hand_general_time', 0.0)
     hands_above_chin_time = hand_data.get('hands_above_chin_time', 0.0)
     box_overlap_time = hand_data.get('face_overlap_time', 0.0)
-    hand_gravity_raw = (0.6 * (hand_general_time - hands_above_chin_time) + 0.8 * (hands_above_chin_time - box_overlap_time) + 0.3 * (box_overlap_time)**2) / total_time * 100
+    hand_gravity_raw = (0.6 * (hand_general_time - hands_above_chin_time) + 0.8 * (hands_above_chin_time - box_overlap_time) + 1.5* (box_overlap_time)) / total_time * 100
     # -------------------------------------------------
 
     evaluated_report = {}
