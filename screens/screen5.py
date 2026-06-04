@@ -8,7 +8,7 @@ from utils import (
     get_questions_to_review
 )  
 from tkinter import filedialog
-from score import speech_performance_evaluation, cv_performance_evaluation
+from score import speech_performance_evaluation, cv_performance_evaluation, calculate_perfection_score
 from config import (
     CARD_BG, 
     CARD_BORDER, 
@@ -292,7 +292,15 @@ class Screen5(ctk.CTkScrollableFrame):
             
             ctk.CTkLabel(q_score_frame, text="Score: ", font=box_title_font, text_color="#333333").pack(side="left")
             
-            score_value = int((hand_percent_clamped + gaze_percent_clamped + speech_percent) / 3) 
+            # --- conversion to perfection score (0-100) ---
+            perf_speech = calculate_perfection_score(speech_percent, speech_gravity_thresholds)
+            perf_gaze = calculate_perfection_score(gaze_percent_clamped, head_total_thresholds)
+            perf_hand = calculate_perfection_score(hand_percent_clamped, hand_gravity_thresholds)
+            
+            # Now we calculate the average of the perfection scores (0 -> total failure, 100 -> absolute perfection)
+            score_value = int((perf_speech + perf_gaze + perf_hand) / 3.0) 
+            
+            all_question_scores.append(score_value)
             all_question_scores.append(score_value)  
 
             if score_value > 66:

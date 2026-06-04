@@ -164,3 +164,45 @@ def speech_performance_evaluation(speech_data_dict):
     evaluated_report["speech_gravity"] = min(speech_gravity_raw, 100.0)
     
     return evaluated_report
+
+def calculate_perfection_score(gravity_value, thresholds):
+    """
+    Converts a “bell-shaped” severity score into a linear score (0–100).
+    New ranges: 0–33 (red), 33–66 (yellow), 66–100 (green).
+    """
+    min_r, min_y, max_y, max_r = thresholds
+
+    # 1. Green range (66 - 100) -> Good/Excellent
+    if min_y <= gravity_value <= max_y:
+        # finding the midpoint between min_y and max_y to determine the perfect score point
+        mid_green = (min_y + max_y) / 2.0
+        if gravity_value <= mid_green:
+            # gradually increases from 66 (yellow edge) to 100 (perfect center)
+            return 66.0 + ((gravity_value - min_y) / (mid_green - min_y)) * 34.0 if mid_green > min_y else 100.0
+        else:
+            # gradually decreases from 100 (perfect center) to 66 (yellow edge)
+            return 100.0 - ((gravity_value - mid_green) / (max_y - mid_green)) * 34.0 if max_y > mid_green else 100.0
+            
+    # 2. yellow range (33 - 66) -> decent
+    if min_r <= gravity_value < min_y:
+        # gradually increases from 33 (yellow edge) to 66 (green edge)
+        return 33.0 + ((gravity_value - min_r) / (min_y - min_r)) * 33.0 if min_y > min_r else 33.0
+        
+    # 3. yellow range (66 - 33) -> decent
+    if max_y < gravity_value <= max_r:
+        # gradually decreases from 66 (green edge) to 33 (yellow edge)
+        return 66.0 - ((gravity_value - max_y) / (max_r - max_y)) * 33.0 if max_r > max_y else 33.0
+        
+    # 4. lower red range (0 - 33) -> not sufficient
+    if gravity_value < min_r:
+        # gradually increases from 0 to 33
+        return (gravity_value / min_r) * 33.0 if min_r > 0 else 0.0
+        
+    # 5. upper red range (33 - 0) -> not sufficient
+    if gravity_value > max_r:
+        if gravity_value >= 100.0:
+            return 0.0
+        # gradually decreases from 33 to 0
+        return 33.0 - ((gravity_value - max_r) / (100.0 - max_r)) * 33.0
+        
+    return 0.0
