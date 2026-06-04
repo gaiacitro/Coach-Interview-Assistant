@@ -35,11 +35,13 @@ def analyze_speech(audio_path):
     
     for start, end in all_silences:
         duration = end - start
-        if duration >= 4000:
+        
+        if duration >= 2000:
             long_pauses_count += 1
-        elif duration >= 350 and duration < 500:
-            micro_silences_count += 1
             
+        elif duration >= 350:
+            micro_silences_count += 1
+
     tremor_score = analyze_voice_tremor(audio_path)
     
     segments, _ = model.transcribe(
