@@ -113,13 +113,15 @@ def speech_metric_evaluation(value, base_parameter, metric_name):
     }
 
 def speech_performance_evaluation(speech_data_dict):
-    sec_duration = speech_data_dict.get("audio_duration", 1.0)
+    # Protezione per evitare divisioni per zero
+    sec_duration = max(speech_data_dict.get("audio_duration", 1.0), 0.1)
     answer_text = speech_data_dict.get("text", "")
     
     total_words = max(len(answer_text.split()), 1)
     
     evaluated_report = {}
     
+    # 1. Calcola le metriche individuali per i pallini colorati
     evaluated_report["vocal_fillers"] = speech_metric_evaluation(
         speech_data_dict.get('vocal_fillers', 0), total_words, "vocal_fillers"
     )
@@ -135,5 +137,30 @@ def speech_performance_evaluation(speech_data_dict):
     evaluated_report["tremor"] = speech_metric_evaluation(
         speech_data_dict.get('tremor', 0), None, "tremor"
     )
+    
+    # 2. Calcola lo Speech Gravity Score totale (ora lo facciamo qui nel backend!)
+    t_m = sec_duration / 60.0
+    
+    val_long = evaluated_report["long_pauses"]["real_value"]
+    val_micro = evaluated_report["micro_silences"]["real_value"]
+    val_vocal = evaluated_report["vocal_fillers"]["real_value"]
+    val_filler = evaluated_report["filler_words"]["real_value"]
+    val_tremor = evaluated_report["tremor"]["calculated_value"]
+    
+    long_pm = val_long / t_m if t_m > 0 else 0
+    micro_pm = val_micro / t_m if t_m > 0 else 0
+    filler_pm = val_filler / t_m if t_m > 0 else 0
+    vocal_pm = val_vocal / t_m if t_m > 0 else 0
+    
+    speech_gravity_raw = (
+        (val_tremor * 0.4) +               
+        (long_pm * 25) +                  
+        (micro_pm * 1.5) +                
+        (max(0, filler_pm - 2) * 4) +     
+        (max(0, vocal_pm - 3) * 4)       
+    )
+    
+    # Salviamo il punteggio nel dizionario, limitandolo a 100%
+    evaluated_report["speech_gravity"] = min(speech_gravity_raw, 100.0)
     
     return evaluated_report

@@ -136,10 +136,8 @@ class Screen5(ctk.CTkScrollableFrame):
             
             ctk.CTkLabel(speech_frame, text="🎤 Speech Analysis", font=box_title_font, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
             
+            # Qui riceviamo TUTTI i dati da score.py, compreso il risultato finale!
             report_speech = speech_performance_evaluation(item)
-            #calculation of time over minutes
-            sec_duration = max(item.get("audio_duration", 1.0), 0.1)
-            t_m = sec_duration / 60.0
 
             val_long = report_speech.get("long_pauses", {})
             val_micro = report_speech.get("micro_silences", {})
@@ -147,12 +145,7 @@ class Screen5(ctk.CTkScrollableFrame):
             val_filler = report_speech.get("filler_words", {})
             val_tremor = report_speech.get("tremor", {})
 
-            long_pm = val_long.get('real_value', 0) / t_m if t_m > 0 else 0
-            micro_pm = val_micro.get('real_value', 0) / t_m if t_m > 0 else 0
-            filler_pm = val_filler.get('real_value', 0) / t_m if t_m > 0 else 0
-            vocal_pm = val_vocal.get('real_value', 0) / t_m if t_m > 0 else 0
-
-            #statistics with colored dots
+            # statistics with colored dots
             add_dot(speech_frame, f"Long Pauses: {val_long.get('real_value', 0)}", val_long)
             add_dot(speech_frame, f"Micro Silences: {val_micro.get('real_value', 0)}", val_micro)
             add_dot(speech_frame, f"Vocal Fillers: {val_vocal.get('real_value', 0)}", val_vocal)
@@ -162,16 +155,7 @@ class Screen5(ctk.CTkScrollableFrame):
             # total speech gravity
             ctk.CTkLabel(speech_frame, text="TOTAL SPEECH GRAVITY", font=box_title_font, text_color="#333333").pack(anchor="center", pady=(15, 5))
             
-            
-            # compute the speech gravity score
-            speech_gravity_raw = (
-                (val_tremor.get('calculated_value', 0) * 0.4) +               
-                (long_pm * 25) +                  
-                (micro_pm * 1.5) +                
-                (max(0, filler_pm - 2) * 4) +     
-                (max(0, vocal_pm - 3) * 4)       
-            )
-            speech_percent = int(max(0, min(100, speech_gravity_raw)))
+            speech_percent = int(max(0, report_speech.get("speech_gravity", 0.0)))
 
             # customized colored bar
             bar_canvas_s = ctk.CTkCanvas(speech_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
