@@ -199,7 +199,7 @@ class Screen5(ctk.CTkScrollableFrame):
             val_tremor = report_cv.get("face_tremor", {})
 
             # title
-            ctk.CTkLabel(face_frame, text="👁️ Gaze Analysis", font=box_title_font, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
+            ctk.CTkLabel(face_frame, text="👁️ Head & Gaze Analysis", font=box_title_font, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
 
             add_dot(face_frame, f"Eyes Distracted: {cv_face.get('eye_gaze_time', 0.0):.1f}s", val_eyes)
             add_dot(face_frame, f"Head Turn: {cv_face.get('head_movement_time', 0.0):.1f}s", val_head)
