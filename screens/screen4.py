@@ -48,7 +48,7 @@ class InterviewAPI:
             return q
         else:
             return "END"
-
+    """
     # =================================================================
     # VERSION 1: TEST MODE (MOCK RECORDING) 
     # =================================================================
@@ -72,10 +72,11 @@ class InterviewAPI:
             "audio_file": file_path,
             "cv_data": cv_data_dict  
         })
+    """
     # =================================================================
     # VERSION 2: REAL RECORDING MODE 
     # =================================================================
-    '''
+    
     def start_recording(self):
         print("\n>>> [REC] Audio recording started. Vision tracking + calibration already active.")
         max_duration = 300 
@@ -103,7 +104,7 @@ class InterviewAPI:
             "cv_data": cv_data_dict  # <--- Inserito qui in modo pulito
         })
         print(f"    [ Audio saved: {file_path} ]")
-    '''
+    
 
     def run_speech_analysis(self):
         # start speech analysis for each recorded answer and save the reformulated text in the session results
