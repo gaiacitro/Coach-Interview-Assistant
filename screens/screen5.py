@@ -12,7 +12,7 @@ from score import speech_performance_evaluation, cv_performance_evaluation, calc
 from config import (
     CARD_BG, 
     CARD_BORDER, 
-    TEXT_GREEN,
+    TEXT_MAIN,
     TEXT_SUB,
     BTN_BG, 
     BTN_TEXT, 
@@ -76,7 +76,7 @@ class Screen5(ctk.CTkScrollableFrame):
         center_frame.pack(pady=40, padx=40, ipadx=40, ipady=40, expand=True, fill="both")
 
         # title section
-        ctk.CTkLabel(center_frame, text="Interview Report", font=big_title_font, text_color=TEXT_GREEN).pack(anchor="center", pady=(40, 40))
+        ctk.CTkLabel(center_frame, text="Interview Report", font=big_title_font, text_color=TEXT_MAIN).pack(anchor="center", pady=(40, 40))
 
         # if no data is passed, use the default mock data for demonstration
         if not data:
@@ -91,7 +91,7 @@ class Screen5(ctk.CTkScrollableFrame):
             card = ctk.CTkFrame(center_frame, fg_color="white", corner_radius=15, border_width=2, border_color="#E8ECE8")
             card.pack(fill="x", pady=15, padx=20, ipady=15, ipadx=15)
 
-            ctk.CTkLabel(card, text=f"Q{idx+1}: {item['question']}", font=question_font, text_color=TEXT_GREEN, wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(10, 5))
+            ctk.CTkLabel(card, text=f"Q{idx+1}: {item['question']}", font=question_font, text_color=TEXT_MAIN, wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(10, 5))
             
             ctk.CTkLabel(card, text=f"Your answer: \"{item['text']}\"", font=answer_font, text_color="#555555", wraplength=850, justify="left").pack(anchor="w", padx=10, pady=(0, 5))
             
@@ -101,7 +101,7 @@ class Screen5(ctk.CTkScrollableFrame):
             ctk.CTkLabel(card, text=f"Response time: {response_time:.1f} sec", font=regular_font, text_color="#888888").pack(anchor="w", padx=10, pady=(0, 5))
 
            #empty space for the reformulated answer to be inserted later
-            rephrased_label = ctk.CTkLabel(card, text="", font=answer_font, text_color=TEXT_GREEN, wraplength=850, justify="left")
+            rephrased_label = ctk.CTkLabel(card, text="", font=answer_font, text_color=TEXT_MAIN, wraplength=850, justify="left")
             rephrased_label.pack(anchor="w", padx=10, pady=(0, 10))
 
             #buttons for reformulation 
@@ -369,7 +369,7 @@ class Screen5(ctk.CTkScrollableFrame):
         ## download report button
         
         ctk.CTkButton(center_frame, text="Download Report", font=buttons_font, 
-                      fg_color=TEXT_GREEN, text_color="white", hover_color=TEXT_SUB, 
+                      fg_color=TEXT_MAIN, text_color="white", hover_color=TEXT_SUB, 
                       width=250, height=55, corner_radius=15,
                       command=lambda: self.export_report(data, final_score_value)).pack(pady=(50, 20))
 

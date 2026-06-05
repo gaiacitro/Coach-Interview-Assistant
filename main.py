@@ -4,7 +4,7 @@ import os
 from screens.screen1 import Screen1
 from screens.screen2_3 import Screen2_3
 from screens.screen5 import Screen5
-from config import CARD_BG, APP_FONT, TEXT_GREEN, TEXT_SUB  
+from config import CARD_BG, APP_FONT, TEXT_MAIN, TEXT_SUB  
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['GLOG_minloglevel'] = '3'
 
@@ -46,7 +46,7 @@ class InterviewApp(ctk.CTk):
             loading_frame.pack(expand=True, fill="both")
             
             ctk.CTkLabel(loading_frame, text="Loading the interview setup...", 
-                         font=(APP_FONT, 28, "bold"), text_color=TEXT_GREEN).pack(pady=(250, 10))
+                         font=(APP_FONT, 28, "bold"), text_color=TEXT_MAIN).pack(pady=(250, 10))
             ctk.CTkLabel(loading_frame, text="Initializing AI models. This may take a few seconds", 
                          font=(APP_FONT, 16), text_color=TEXT_SUB).pack()
             

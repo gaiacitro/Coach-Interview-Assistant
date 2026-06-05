@@ -2,7 +2,7 @@ import customtkinter as ctk
 from config import (
     CARD_BG, 
     CARD_BORDER, 
-    TEXT_GREEN,
+    TEXT_MAIN,
     TEXT_SUB,
     BTN_BG, 
     BTN_TEXT, 
@@ -28,7 +28,7 @@ class Screen1(ctk.CTkFrame):
 
         # title
         ctk.CTkLabel(self, text="Interview Coach Assistant", 
-                     font=title_font, text_color=TEXT_GREEN).pack(pady=(40, 10), anchor="center")
+                     font=title_font, text_color=TEXT_MAIN).pack(pady=(40, 10), anchor="center")
 
         # subtitle
         ctk.CTkLabel(self, text="What interview do you want to practice?", 

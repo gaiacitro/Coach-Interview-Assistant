@@ -4,7 +4,7 @@ import random
 from config import (
     CARD_BG, 
     CARD_BORDER, 
-    TEXT_GREEN,
+    TEXT_MAIN,
     TEXT_SUB,
     BTN_BG, 
     BTN_TEXT, 
@@ -38,7 +38,7 @@ class Screen2_3(ctk.CTkFrame):
         list_text = "Select the questions you would like to receive:" if mode == "job" else "Select or add the questions for your exam:"
 
         ctk.CTkLabel(self, text=title_text, 
-                     font=title_font, text_color=TEXT_GREEN).pack(pady=(40, 25), anchor="center")
+                     font=title_font, text_color=TEXT_MAIN).pack(pady=(40, 25), anchor="center")
 
         # number of questions 
         ctk.CTkLabel(self, text=num_q_text, 
@@ -92,7 +92,7 @@ class Screen2_3(ctk.CTkFrame):
         # start interview button
         submit_btn = ctk.CTkButton(
             self, text="Start the interview", font=buttons_font, 
-            fg_color=TEXT_GREEN, text_color=CARD_BG, height=50, width=250, corner_radius=15, 
+            fg_color=TEXT_MAIN, text_color=CARD_BG, height=50, width=250, corner_radius=15, 
             hover_color=TEXT_SUB, 
             command=self.validate_and_start
         )
@@ -100,7 +100,7 @@ class Screen2_3(ctk.CTkFrame):
 
     def add_checkbox(self, text):
         cb = ctk.CTkCheckBox(self.scroll_frame, text=text, font=ctk.CTkFont(family=APP_FONT, size=14), 
-                             fg_color=TEXT_GREEN, hover_color=BTN_HOVER, border_color=CARD_BORDER, border_width=2,
+                             fg_color=TEXT_MAIN, hover_color=BTN_HOVER, border_color=CARD_BORDER, border_width=2,
                              text_color="#333333") 
         cb.pack(anchor="w", pady=8, padx=5)
         
