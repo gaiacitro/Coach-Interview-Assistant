@@ -148,21 +148,21 @@ def generate_suggestions(data):
     from suggestions import SUGGESTIONS
     
     cv_thresholds = {
-        "eye_gaze_time": (10.0, 30.0, 60.0, 85.0),
-        "face_tremor_time": (15.0, 35.0, 65.0, 85.0),
-        "head_movement_time": (20.0, 40.0, 65.0, 85.0),
-        "head_down": (20.0, 40.0, 65.0, 85.0),
-        "hand_general_time": (20.0, 40.0, 65.0, 85.0),
-        "face_touch_time": (10.0, 20.0, 40.0, 60.0), 
-        "face_overlap_time": (5.0, 10.0, 20.0, 40.0)
+        "eye_gaze_time": (0.0, 2.0, 10.0, 17.0),
+        "face_tremor_time": (0.0, 0.0, 3.5, 5.0),
+        "head_movement_time": (0.0, 1.5, 7.0, 10.0),
+        "head_down": (0.0, 0.0, 1.8, 3.0),
+        "hand_general_time": (0.0, 2.0, 15.0, 20.0),   
+        "face_touch_time": (0.0, 0.0, 2.0, 5.0), 
+        "face_overlap_time": (0.0, 0.0, 5.0, 7.0)
     }
     
     speech_thresholds = {
-        "vocal_fillers": (1.0, 2.0, 5.0, 8.0),     
-        "filler_words": (-1.0, -1.0, 2.0, 5.0),    
-        "micro_silences": (-1.0, -1.0, 5.0, 12.0), 
-        "long_pauses": (-1.0, -1.0, 0.0, 1.0),     
-        "tremor": (-1.0, -1.0, 33.0, 66.0)         
+        "vocal_fillers": (0.0, 0.0, 5.0, 8.0),     
+        "filler_words": (0.0, 0.0, 2.0, 5.0),    
+        "micro_silences": (0.0, 0.0, 5.0, 12.0), 
+        "long_pauses": (0.0, 0.0, 0.0, 1.0),     
+        "tremor": (0.0, 0.0, 33.0, 66.0)          
     }
     
     metric_mapping = {

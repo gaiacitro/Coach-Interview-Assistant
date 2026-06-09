@@ -3,15 +3,15 @@
 def cv_metric_evaluation(sec_value, total_time, metric_name):
     # Thresholds: (min_red, min_yellow, max_yellow, max_red)
     thresholds = {
-        "eye_gaze_time": (10.0, 30.0, 60.0, 85.0),
-        "face_tremor_time": (15.0, 35.0, 65.0, 85.0),
-        "head_movement_time": (20.0, 40.0, 65.0, 85.0),
-        "head_down": (20.0, 40.0, 65.0, 85.0),
-        "hand_general_time": (20.0, 40.0, 65.0, 85.0),
-        "face_touch_time": (10.0, 20.0, 40.0, 60.0), 
-        "hand_gravity" : (5.0, 35.0, 55.0, 80.0),
-        "head_total": (5.0, 25.0, 60.0, 85.0),
-        "face_overlap_time": (5.0, 10.0, 20.0, 40.0)  
+        "eye_gaze_time": (0.0, 2.0, 10.0, 17.0),
+        "face_tremor_time": (0.0, 0.0, 3.5, 5.0),
+        "head_movement_time": (0.0, 1.5, 7.0, 10.0),
+        "head_down": (0.0, 0.0, 1.8, 3.0),
+        "hand_general_time": (0.0, 2.0, 15.0, 20.0),   
+        "face_touch_time": (0.0, 0.0, 2.0, 5.0), 
+        "hand_gravity" : (5.0, 35.0, 55.0, 80.0),#QUESTO COME LO CAMBIO??
+        "head_total": (5.0, 25.0, 60.0, 85.0),#QUESTO COME LO CAMBIO??
+        "face_overlap_time": (0.0, 0.0, 5.0, 7.0)  
     }
     
     total_time = max(total_time, 0.1)
@@ -44,24 +44,50 @@ def cv_performance_evaluation(cv_data_dict):
     
     total_time = max(face_data.get("total_time_answer", 1.0), 0.1) 
     
-    # --- head total e hand gravity ---
+    # 1. Convertiamo il tempo totale in minuti
+    t_m = total_time / 60.0
+    
+    # --- HEAD GRAVITY SCORE (Tasso per Minuto) ---
     head_down_time = face_data.get('head_down', 0.0)
     head_moved_time = face_data.get('head_movement_time', 0.0)
     eye_gaze_time = face_data.get('eye_gaze_time', 0.0)
     face_tremor_time = face_data.get('face_tremor_time', 0.0)
-    head_total_raw = (1.2* (head_down_time) + 0.4 * head_moved_time + 1.2 * eye_gaze_time + 0.2 * face_tremor_time) / total_time * 100
     
+    # Calcoliamo i "secondi di errore" per ogni minuto di video
+    head_down_pm = head_down_time / t_m
+    head_moved_pm = head_moved_time / t_m
+    eye_gaze_pm = eye_gaze_time / t_m
+    face_tremor_pm = face_tremor_time / t_m
+    
+    # Applichiamo i pesi ai valori al minuto. 
+    # Esempio: se tieni la testa bassa per 10 sec al minuto, pesa di più di muovere la testa per 10 sec.
+    head_total_raw = (1.2 * head_down_pm) + (0.4 * head_moved_pm) + (1.2 * eye_gaze_pm) + (0.2 * face_tremor_pm)
+    
+    # --- HAND GRAVITY SCORE (Tasso per Minuto) ---
     hand_general_time = hand_data.get('hand_general_time', 0.0)
     hands_above_chin_time = hand_data.get('hands_above_chin_time', 0.0)
     box_overlap_time = hand_data.get('face_overlap_time', 0.0)
-    hand_gravity_raw = (0.6 * (hand_general_time - hands_above_chin_time) + 0.8 * (hands_above_chin_time - box_overlap_time) + 1.3* (box_overlap_time)) / total_time * 100
+    
+    # Isoliamo i tempi per non contare i secondi due volte (es: mani sul volto implica anche mani sopra il mento)
+    solo_hand_general = max(0, hand_general_time - hands_above_chin_time)
+    solo_hands_above_chin = max(0, hands_above_chin_time - box_overlap_time)
+    
+    # Calcoliamo i "secondi di errore" per ogni minuto di video
+    hand_general_pm = solo_hand_general / t_m
+    hands_above_chin_pm = solo_hands_above_chin / t_m
+    box_overlap_pm = box_overlap_time / t_m
+    
+    # Applichiamo i pesi crescenti in base alla gravità del gesto
+    hand_gravity_raw = (0.6 * hand_general_pm) + (0.8 * hands_above_chin_pm) + (1.3 * box_overlap_pm)
     # -------------------------------------------------
 
     evaluated_report = {}
     
+    # Limitiamo il punteggio finale di gravità a 100.0 come massimale
     evaluated_report["head_total"] = min(head_total_raw, 100.0)
     evaluated_report["hand_gravity"] = min(hand_gravity_raw, 100.0)
     
+    # 2. Manteniamo invariata la valutazione dei singoli "pallini" (che usano le percentuali e le soglie assolute per i feedback a schermo)
     evaluated_report["eye_gaze"] = cv_metric_evaluation(face_data.get('eye_gaze_time', 0.0), total_time, "eye_gaze_time")
     evaluated_report["head_movement"] = cv_metric_evaluation(face_data.get('head_movement_time', 0.0), total_time, "head_movement_time")
     evaluated_report["head_down"] = cv_metric_evaluation(face_data.get('head_down', 0.0), total_time, "head_down")
@@ -71,15 +97,16 @@ def cv_performance_evaluation(cv_data_dict):
     evaluated_report["face_touch"] = cv_metric_evaluation(hand_data.get('face_touch_time', 0.0), total_time, "face_touch_time")
     evaluated_report["face_overlap"] = cv_metric_evaluation(hand_data.get('face_overlap_time', 0.0), total_time, "face_overlap_time")
     
-    return evaluated_report   
+    return evaluated_report
+ 
 
 def speech_metric_evaluation(value, base_parameter, metric_name):
     thresholds = {
-        "vocal_fillers": (1.0, 2.0, 5.0, 8.0),     
-        "filler_words": (-1.0, -1.0, 2.0, 5.0),    
-        "micro_silences": (-1.0, -1.0, 5.0, 12.0), 
-        "long_pauses": (-1.0, -1.0, 0.0, 1.0),     
-        "tremor": (-1.0, -1.0, 33.0, 66.0)         
+        "vocal_fillers": (0.0, 0.0, 5.0, 8.0),     
+        "filler_words": (0.0, 0.0, 2.0, 5.0),    
+        "micro_silences": (0.0, 0.0, 5.0, 12.0), 
+        "long_pauses": (0.0, 0.0, 0.0, 1.0),     
+        "tremor": (0.0, 0.0, 33.0, 66.0)         
     }
     
     if metric_name in ["vocal_fillers", "filler_words"]:

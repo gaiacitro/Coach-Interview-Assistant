@@ -264,7 +264,7 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas_h.pack(anchor="center", pady=(0, 0))
             
             # thresholds for hand_gravity: (5.0, 35.0, 55.0, 80.0)
-            hand_gravity_thresholds = (5.0, 35.0, 55.0, 80.0)
+            hand_gravity_thresholds = (1.0, 20.0, 55.0, 70.0)
             segments_h = get_threshold_segments(canvas_w, canvas_h, hand_gravity_thresholds)
             
             # draw rounded arcs at the two ends
