@@ -162,7 +162,7 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas_s.pack(anchor="center", pady=(0, 0))
 
             # thresholds for speech_gravity
-            speech_gravity_thresholds = (5.0, 30.0, 60.0, 85.0)
+            speech_gravity_thresholds = (0.0, 5.0, 45.0, 75.0)
             segments_s = get_threshold_segments(canvas_w, canvas_h, speech_gravity_thresholds)
             
             bar_canvas_s.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments_s[0][2], outline=segments_s[0][2])
@@ -219,7 +219,7 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas.pack(anchor="center", pady=(0, 0))
 
             # thresholds for head_total: (5.0, 25.0, 60.0, 85.0)
-            head_total_thresholds = (5.0, 25.0, 60.0, 85.0)
+            head_total_thresholds = (0.0, 5.0, 45.0, 75.0)
             segments = get_threshold_segments(canvas_w, canvas_h, head_total_thresholds)
             
             bar_canvas.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments[0][2], outline=segments[0][2])
@@ -264,7 +264,7 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas_h.pack(anchor="center", pady=(0, 0))
             
             # thresholds for hand_gravity: (5.0, 35.0, 55.0, 80.0)
-            hand_gravity_thresholds = (1.0, 20.0, 55.0, 70.0)
+            hand_gravity_thresholds = (0.0, 0.0, 45.0, 75.0)
             segments_h = get_threshold_segments(canvas_w, canvas_h, hand_gravity_thresholds)
             
             # draw rounded arcs at the two ends
