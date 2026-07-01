@@ -276,8 +276,8 @@ def add_dot(parent_frame, label_text, val_dict):
             
             ctk.CTkLabel(row, text=label_text, font=regular_font, text_color="#333333").pack(side="left")
 
-
 def get_questions_to_review(data):
+
     """
     Analyze the total scores (Speech, Gaze, Hand) for each question.
     If at least 2 out of 3 categories are in the red (too high or too low),
@@ -332,3 +332,63 @@ def get_questions_to_review(data):
         return "• No critical questions to review. Great job!"
         
     return "\n".join(questions_to_review)
+
+def get_threshold_segments(canvas_w, canvas_h, thresholds):
+    """Generates segments of a colored bar based on percentage thresholds."""
+    min_red, min_yellow, max_yellow, max_red = thresholds
+    red_color = "#F44336"
+    orange_color = "#FF9800"
+    green_color = "#4CAF50"
+    
+    segments = []
+    def pct_to_px(pct):
+        return (pct / 100.0) * canvas_w
+    
+    threshold_points = [0, min_red, min_yellow, max_yellow, max_red, 100]
+    threshold_colors = [red_color, orange_color, green_color, orange_color, red_color]
+    
+    for i in range(len(threshold_points) - 1):
+        x_start = pct_to_px(threshold_points[i])
+        x_end = pct_to_px(threshold_points[i + 1])
+        color = threshold_colors[i]
+        if x_end > x_start:
+            segments.append((x_start, x_end, color))
+    return segments
+
+def get_feedback_text_and_color(percent, thresholds):
+    """Restituisce la parola corretta e il colore in base alle soglie."""
+    min_red, min_yellow, max_yellow, max_red = thresholds
+    if min_yellow <= percent <= max_yellow:
+        return "Well done!", "#4CAF50"  # Verde
+    elif (min_red <= percent < min_yellow) or (max_yellow < percent <= max_red):
+        return "Almost there!", "#FF9800"  # Arancione
+    else:
+        return "Needs improvement", "#F44336"  # Rosso
+
+def draw_gravity_bar(canvas, percent, thresholds, canvas_w=320, canvas_h=16):
+    """Disegna l'intera barra colorata e l'indicatore nero sul canvas fornito."""
+    segments = get_threshold_segments(canvas_w, canvas_h, thresholds)
+    
+    # Archi arrotondati ai lati
+    canvas.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments[0][2], outline=segments[0][2])
+    canvas.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments[-1][2], outline=segments[-1][2])
+    
+    # Corpo centrale della barra
+    for x_start, x_end, color in segments:
+        adjusted_start = max(x_start, canvas_h / 2)
+        adjusted_end = min(x_end, canvas_w - canvas_h / 2)
+        if adjusted_end > adjusted_start:
+            canvas.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
+
+    # Linea nera indicatore
+    marker_x = (percent / 100) * canvas_w
+    canvas.create_line(marker_x, -2, marker_x, canvas_h + 10, fill="black", width=4)
+
+def get_color_by_score(value):
+    if value > 66:
+        color = "#12BA4B"
+    elif value >= 33:
+        color = "#FF9800" 
+    else:
+        color = "#F44336"
+    return color

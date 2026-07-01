@@ -5,7 +5,10 @@ from utils import (
     DEFAULT_INTERVIEW_DATA,
     add_dot,
     generate_suggestions,
-    get_questions_to_review
+    get_questions_to_review,
+    get_feedback_text_and_color,
+    draw_gravity_bar,
+    get_color_by_score
 )  
 from tkinter import filedialog
 from score import speech_performance_evaluation, cv_performance_evaluation, calculate_perfection_score
@@ -21,35 +24,6 @@ from config import (
 )
 import threading
 from ai_helper import get_reformulated_text 
-
-def get_threshold_segments(canvas_w, canvas_h, thresholds):
-    """
-    Generates segments of a colored bar based on percentage thresholds.
-    Returns a list of (x_start, x_end, color)
-    """
-    min_red, min_yellow, max_yellow, max_red = thresholds
-    red_color = "#F44336"
-    orange_color = "#FF9800"
-    green_color = "#4CAF50"
-    
-    segments = []
-    
-    # converts percentage thresholds to pixel positions on the canvas
-    def pct_to_px(pct):
-        return (pct / 100.0) * canvas_w
-    
-    threshold_points = [0, min_red, min_yellow, max_yellow, max_red, 100]
-    threshold_colors = [red_color, orange_color, green_color, orange_color, red_color]
-    
-    for i in range(len(threshold_points) - 1):
-        x_start = pct_to_px(threshold_points[i])
-        x_end = pct_to_px(threshold_points[i + 1])
-        color = threshold_colors[i]
-        
-        if x_end > x_start: # only add segment if it has a positive width
-            segments.append((x_start, x_end, color))
-    
-    return segments
 
 class Screen5(ctk.CTkScrollableFrame):
     def __init__(self, parent, controller, data=None):
@@ -163,24 +137,11 @@ class Screen5(ctk.CTkScrollableFrame):
 
             # thresholds for speech_gravity
             speech_gravity_thresholds = (0.0, 5.0, 45.0, 75.0)
-            segments_s = get_threshold_segments(canvas_w, canvas_h, speech_gravity_thresholds)
-            
-            bar_canvas_s.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments_s[0][2], outline=segments_s[0][2])
-            bar_canvas_s.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments_s[-1][2], outline=segments_s[-1][2])
-            
-            for x_start, x_end, color in segments_s:
-                adjusted_start = max(x_start, canvas_h / 2)
-                adjusted_end = min(x_end, canvas_w - canvas_h / 2)
-                if adjusted_end > adjusted_start:
-                    bar_canvas_s.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
+            draw_gravity_bar(bar_canvas_s, speech_percent, speech_gravity_thresholds)
 
-            # black marker line
-            marker_x_s = (speech_percent / 100) * canvas_w
-            bar_canvas_s.create_line(marker_x_s, -2, marker_x_s, canvas_h + 10, fill="black", width=4)
-
-            # percentage number below the bar
-            ctk.CTkLabel(speech_frame, text=f"{speech_percent}%", font=box_title_font, text_color="black").pack(anchor="center", pady=(0, 5))
-            
+            # feedback text
+            testo_s, colore_s = get_feedback_text_and_color(speech_percent, speech_gravity_thresholds)
+            ctk.CTkLabel(speech_frame, text=testo_s, font=regular_font, text_color=colore_s).pack(anchor="center", pady=(0, 5))
             
             # ---- gaze/face frame ----
             face_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
@@ -216,28 +177,13 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas = ctk.CTkCanvas(face_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas.pack(anchor="center", pady=(0, 0))
 
-            # thresholds for head_total: (5.0, 25.0, 60.0, 85.0)
+            # thresholds for head_total
             head_total_thresholds = (0.0, 5.0, 45.0, 75.0)
-            segments = get_threshold_segments(canvas_w, canvas_h, head_total_thresholds)
-            
-            bar_canvas.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments[0][2], outline=segments[0][2])
-            bar_canvas.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments[-1][2], outline=segments[-1][2])
-            
-            # draw segments with adjusted margins for the rounded arcs
-            for x_start, x_end, color in segments:
-                adjusted_start = max(x_start, canvas_h / 2)
-                adjusted_end = min(x_end, canvas_w - canvas_h / 2)
-                
-                if adjusted_end > adjusted_start:
-                    bar_canvas.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
+            draw_gravity_bar(bar_canvas, gaze_percent_clamped, head_total_thresholds)
 
-            # black marker line
-            marker_x = (gaze_percent_clamped / 100) * canvas_w
-            bar_canvas.create_line(marker_x, -2, marker_x, canvas_h + 10, fill="black", width=4)
-
-            # percentage number below the bar
-            ctk.CTkLabel(face_frame, text=f"{gaze_percent}%", font=box_title_font, text_color="black").pack(anchor="center", pady=(0, 5))
-            
+            # feedback text
+            testo_g, colore_g = get_feedback_text_and_color(gaze_percent_clamped, head_total_thresholds)
+            ctk.CTkLabel(face_frame, text=testo_g, font=regular_font, text_color=colore_g).pack(anchor="center", pady=(0, 5))
             
             # ---- hand frame ----
             hand_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
@@ -261,29 +207,13 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas_h = ctk.CTkCanvas(hand_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas_h.pack(anchor="center", pady=(0, 0))
             
-            # thresholds for hand_gravity: (5.0, 35.0, 55.0, 80.0)
+            # thresholds for hand_gravity
             hand_gravity_thresholds = (0.0, 0.0, 45.0, 75.0)
-            segments_h = get_threshold_segments(canvas_w, canvas_h, hand_gravity_thresholds)
-            
-            # draw rounded arcs at the two ends
-            bar_canvas_h.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments_h[0][2], outline=segments_h[0][2])
-            bar_canvas_h.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments_h[-1][2], outline=segments_h[-1][2])
-            
-            # draw segments with adjusted margins for the rounded arcs
-            for x_start, x_end, color in segments_h:
-                # adjust margins for the rounded arcs
-                adjusted_start = max(x_start, canvas_h / 2)
-                adjusted_end = min(x_end, canvas_w - canvas_h / 2)
-                
-                if adjusted_end > adjusted_start:
-                    bar_canvas_h.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
+            draw_gravity_bar(bar_canvas_h, hand_percent_clamped, hand_gravity_thresholds)
 
-            # black marker line
-            marker_x_h = (hand_percent_clamped / 100) * canvas_w
-            bar_canvas_h.create_line(marker_x_h, -2, marker_x_h, canvas_h + 10, fill="black", width=4)
-
-            # percentage number below the bar
-            ctk.CTkLabel(hand_frame, text=f"{hand_percent}%", font=box_title_font, text_color="black").pack(anchor="center", pady=(0, 5))
+            # feedback text
+            testo_h, colore_h = get_feedback_text_and_color(hand_percent_clamped, hand_gravity_thresholds)
+            ctk.CTkLabel(hand_frame, text=testo_h, font=regular_font, text_color=colore_h).pack(anchor="center", pady=(0, 5))
             
             q_score_frame = ctk.CTkFrame(card, fg_color="transparent")
             q_score_frame.pack(pady=(15, 10), anchor="center")
@@ -301,15 +231,9 @@ class Screen5(ctk.CTkScrollableFrame):
             all_question_scores.append(score_value)
             all_question_scores.append(score_value)  
 
-            if score_value > 66:
-                score_color = "#12BA4B"
-            elif score_value >= 33:
-                score_color = "#FF9800" 
-            else:
-                score_color = "#F44336"
 
             ctk.CTkLabel(q_score_frame, text=f" {score_value} / 100 ", font=question_font, 
-                         fg_color=score_color, text_color="white", corner_radius=8, width=80, height=30).pack(side="left", padx=5)
+                         fg_color=get_color_by_score(score_value), text_color="white", corner_radius=8, width=80, height=30).pack(side="left", padx=5)
             
             
         ## second part: overall feedback and suggestions
@@ -321,12 +245,6 @@ class Screen5(ctk.CTkScrollableFrame):
         # Calculate the final score as the average of all the question scores
         final_score_value = int(sum(all_question_scores) / len(all_question_scores)) if all_question_scores else 0 
         
-        if final_score_value > 66:
-            score_color = "#12BA4B" 
-        elif final_score_value >= 33:
-            score_color = "#FF9800" 
-        else:
-            score_color = "#F44336" 
 
         score_container = ctk.CTkFrame(feedback_frame, fg_color="transparent")
         score_container.pack(anchor="w", padx=10, pady=(20, 20))
@@ -334,7 +252,7 @@ class Screen5(ctk.CTkScrollableFrame):
         ctk.CTkLabel(score_container, text="Final Score: ", font=box_title_font, text_color="#333333").pack(side="left")
         
         ctk.CTkLabel(score_container, text=f" {final_score_value} / 100 ", font=question_font, 
-                     fg_color=score_color, text_color="white", corner_radius=8, width=100, height=35).pack(side="left", padx=10)
+                     fg_color=get_color_by_score(final_score_value), text_color="white", corner_radius=8, width=100, height=35).pack(side="left", padx=10)
 
         ctk.CTkLabel(feedback_frame, text="Questions to Review:", font=box_title_font, text_color=TEXT_SUB).pack(anchor="w", padx=10)
         
