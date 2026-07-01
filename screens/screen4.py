@@ -101,7 +101,7 @@ class InterviewAPI:
         self.session_results.append({
             "question": self.current_question_text,
             "audio_file": file_path,
-            "cv_data": cv_data_dict  # <--- Inserito qui in modo pulito
+            "cv_data": cv_data_dict  
         })
         print(f"    [ Audio saved: {file_path} ]")
     

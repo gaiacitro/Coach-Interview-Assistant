@@ -213,8 +213,6 @@ class Screen5(ctk.CTkScrollableFrame):
             gaze_percent_clamped = max(0, min(100, gaze_percent)) # Limita tra 0 e 100 per non far uscire la lineetta dal disegno
             
             # customized colored bar
-            canvas_w = 320
-            canvas_h = 16
             bar_canvas = ctk.CTkCanvas(face_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas.pack(anchor="center", pady=(0, 0))
 
