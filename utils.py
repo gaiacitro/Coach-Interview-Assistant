@@ -64,7 +64,9 @@ DEFAULT_INTERVIEW_DATA = [
 ]
 
 
-def generate_report_text(data, final_score): #####da modificare?
+def generate_report_text(data, final_score):
+    from score import speech_performance_evaluation, cv_performance_evaluation, calculate_perfection_score, BAR_THRESHOLDS
+    
     report_text = "========================================================\n"
     report_text += "                 INTERVIEW REPORT                        \n"
     report_text += "========================================================\n\n"
@@ -75,6 +77,21 @@ def generate_report_text(data, final_score): #####da modificare?
         report_text += f"Q{idx+1}: {item['question']}\n"
         report_text += f"Your answer: \"{item['text']}\"\n\n"
         
+        # SPEECH EVALUATION
+        report_speech = speech_performance_evaluation(item)
+        speech_percent = int(max(0, report_speech.get("speech_gravity", 0.0)))
+        perf_speech = calculate_perfection_score(speech_percent, BAR_THRESHOLDS["speech_gravity"])
+        
+        #help function to determine feedback text based on thresholds
+        def get_text_feedback(gravity_value, thresholds):
+            min_r, min_y, max_y, max_r = thresholds
+            if min_y <= gravity_value <= max_y:
+                return "Well done!"
+            elif (min_r <= gravity_value < min_y) or (max_y < gravity_value <= max_r):
+                return "Almost there!"
+            else:
+                return "Needs improvement"
+        
         v_count = item.get('vocal_fillers', 0)
         v_dict = item.get('vocal_fillers_dict', {})
         f_count = item.get('filler_words', 0)
@@ -84,7 +101,6 @@ def generate_report_text(data, final_score): #####da modificare?
         report_text += f"- Audio Duration: {item.get('audio_duration', 0.0):.1f}s\n"
         report_text += f"- Long Pauses: {item.get('silence_count', 0)}\n"
         report_text += f"- Micro Silences: {item.get('micro_silences', 0)}\n"
-        
         report_text += f"- Vocal Fillers: {v_count}\n"
         if v_count > 0:
             for word, count in v_dict.items():
@@ -95,35 +111,48 @@ def generate_report_text(data, final_score): #####da modificare?
             for word, count in f_dict.items():
                 report_text += f"    * {word} [{count}]\n"
                 
-        report_text += f"- Voice Tremor: {item.get('tremor', 0)} / 100\n\n"
+        report_text += f"- Voice Tremor: {report_speech.get('tremor', {}).get('calculated_value', 0.0):.0f} / 100\n"
+        report_text += f"-> Speech Outcome: {get_text_feedback(speech_percent, BAR_THRESHOLDS['speech_gravity'])}\n\n"
 
+        #FACE & GAZE EVALUATION
         cv_data = item.get("cv_data", {})
+        report_cv = cv_performance_evaluation(cv_data)
+        
         cv_face = cv_data.get("gaze_face", {})
-        cv_hand = cv_data.get("hand_gesture", {})
+        gaze_percent_clamped = max(0, min(100, int(report_cv.get('head_total', 0.0))))
+        perf_gaze = calculate_perfection_score(gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
 
         report_text += "[Gaze and Face Analysis]\n"
-        report_text += f"- Total Gaze Gravity Score: {cv_face.get('head_total', 0.0):.1f}%\n"
         report_text += f"- Eyes Distracted Time: {cv_face.get('eye_gaze_time', 0.0):.1f}s\n"
         report_text += f"- Head Turn Time: {cv_face.get('head_movement_time', 0.0):.1f}s\n"
         report_text += f"- Head Down Time: {cv_face.get('head_down', 0.0):.1f}s\n"
-        report_text += f"- Nodding / Face Tremor Time: {cv_face.get('face_tremor_time', 0.0):.1f}s\n\n"
+        report_text += f"- Nodding / Face Tremor Time: {cv_face.get('face_tremor_time', 0.0):.1f}s\n"
+        report_text += f"-> Gaze Outcome: {get_text_feedback(gaze_percent_clamped, BAR_THRESHOLDS['head_total'])}\n\n"
+
+        # GESTURE EVALUATION
+        cv_hand = cv_data.get("hand_gesture", {})
+        hand_percent_clamped = max(0, min(100, int(report_cv.get('hand_gravity', 0.0))))
+        perf_hand = calculate_perfection_score(hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
 
         report_text += "[Hand and Gesture Analysis]\n"
-        report_text += f"- Total Gesture Gravity Score: {cv_hand.get('hand_gravity', 0.0):.1f}%\n"
         report_text += f"- Gesticulation Time: {cv_hand.get('hand_general_time', 0.0):.1f}s\n"
         report_text += f"- Big Gestures Time: {cv_hand.get('face_touch_time', 0.0):.1f}s\n"
         report_text += f"- Touching Face Time: {cv_hand.get('face_overlap_time', 0.0):.1f}s\n"
+        report_text += f"-> Gesture Outcome: {get_text_feedback(hand_percent_clamped, BAR_THRESHOLDS['hand_gravity'])}\n\n"
+        
+        # COMPUTING QUESTION SCORE BASED ON SPEECH, GAZE, AND HAND PERFORMANCE
+        score_value = int((perf_speech + perf_gaze + perf_hand) / 3.0) 
+        report_text += f"=== Question Score: {score_value} / 100 ===\n"
         report_text += "-" * 50 + "\n\n"
 
     report_text += "========================================================\n"
     report_text += "                 OVERALL FEEDBACK                       \n"
     report_text += "========================================================\n\n"
-    report_text += f"Final Score: {final_score} / 100\n\n"
+    report_text += f"FINAL SCORE: {final_score} / 100\n\n"
     
     report_text += "Questions to Review:\n"
     report_text += get_questions_to_review(data) + "\n\n"
 
-    
     report_text += "Suggestions:\n"
     
     suggestions_list = generate_suggestions(data)
