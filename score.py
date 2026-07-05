@@ -2,7 +2,7 @@
 
 def cv_metric_evaluation(sec_value, total_time, metric_name):
     # Thresholds: (min_red, min_yellow, max_yellow, max_red)
-    thresholds = {
+    '''thresholds = {
         "eye_gaze_time": (0.0, 2.0, 10.0, 17.0),
         "face_tremor_time": (0.0, 0.0, 3.5, 5.0),
         "head_movement_time": (0.0, 1.5, 7.0, 10.0),
@@ -12,6 +12,23 @@ def cv_metric_evaluation(sec_value, total_time, metric_name):
         "hand_gravity" : (5.0, 35.0, 55.0, 80.0),#QUESTO COME LO CAMBIO??
         "head_total": (5.0, 25.0, 60.0, 85.0),#QUESTO COME LO CAMBIO??
         "face_overlap_time": (0.0, 0.0, 5.0, 7.0)  
+    }'''
+    #NUOVE TRESHOULD CON SIMULAZIONI
+    thresholds = {
+        # Gli occhi sono spesso rilevati come distratti, quindi allarghiamo la tolleranza del verde (fino a 30%) e del giallo
+        "eye_gaze_time": (0.0, 5.0, 30.0, 45.0),
+        # Testa girata: nei video corretti è circa il 10% del tempo, in quelli errati è il 30%
+        "head_movement_time": (0.0, 2.0, 15.0, 30.0),
+        # Testa in basso: quasi 0 nei video corretti, circa il 10% in quelli errati. Molto selettivo.
+        "head_down": (0.0, 0.0, 3.0, 10.0),
+        # Tremore/Annuire: da 20% nei video corretti a 50% in quelli errati
+        "face_tremor_time": (0.0, 5.0, 25.0, 50.0),
+        # Gesticolazione: il 20% del tempo (buono) va bene, ma se supera il 50-60% diventa eccessivo
+        "hand_general_time": (0.0, 5.0, 30.0, 60.0),   
+        # Grandi gesti: abbastanza simili, teniamo una soglia equilibrata
+        "face_touch_time": (0.0, 0.0, 8.0, 15.0), 
+        # Mani sul viso: 5% nei video corretti, oltre il 40% in quelli errati. Sopra il 20% deve essere già giallo/rosso!
+        "face_overlap_time": (0.0, 0.0, 8.0, 25.0),
     }
     
     total_time = max(total_time, 0.1)
@@ -194,42 +211,54 @@ def speech_performance_evaluation(speech_data_dict):
 
 def calculate_perfection_score(gravity_value, thresholds):
     """
-    Converts a “bell-shaped” severity score into a linear score (0–100).
-    New ranges: 0–33 (red), 33–66 (yellow), 66–100 (green).
+    Converts a severity score (bell curve) into a linear perfection score (0-100).
+    Optimal performance is in the middle (between min_y and max_y).
+    Too little movement (statue) or too much movement (anxious) reduces the score.
     """
     min_r, min_y, max_y, max_r = thresholds
 
-    # 1. Green range (66 - 100) -> Good/Excellent
+    # 1. GREEN ZONE (Optimal amount of movement) -> Score 66 to 100
     if min_y <= gravity_value <= max_y:
-        # finding the midpoint between min_y and max_y to determine the perfect score point
-        mid_green = (min_y + max_y) / 2.0
-        if gravity_value <= mid_green:
-            # gradually increases from 66 (yellow edge) to 100 (perfect center)
-            return 66.0 + ((gravity_value - min_y) / (mid_green - min_y)) * 34.0 if mid_green > min_y else 100.0
+        # Maximum perfection (100) is in the exact center of the green zone
+        center = (min_y + max_y) / 2.0
+        if gravity_value == center:
+            return 100.0
+        elif gravity_value < center:
+            interval = center - min_y
+            if interval > 0:
+                return 66.0 + ((gravity_value - min_y) / interval) * 34.0
         else:
-            # gradually decreases from 100 (perfect center) to 66 (yellow edge)
-            return 100.0 - ((gravity_value - mid_green) / (max_y - mid_green)) * 34.0 if max_y > mid_green else 100.0
-            
-    # 2. yellow range (33 - 66) -> decent
-    if min_r <= gravity_value < min_y:
-        # gradually increases from 33 (yellow edge) to 66 (green edge)
-        return 33.0 + ((gravity_value - min_r) / (min_y - min_r)) * 33.0 if min_y > min_r else 33.0
-        
-    # 3. yellow range (66 - 33) -> decent
-    if max_y < gravity_value <= max_r:
-        # gradually decreases from 66 (green edge) to 33 (yellow edge)
-        return 66.0 - ((gravity_value - max_y) / (max_r - max_y)) * 33.0 if max_r > max_y else 33.0
-        
-    # 4. lower red range (0 - 33) -> not sufficient
-    if gravity_value < min_r:
-        # gradually increases from 0 to 33
-        return (gravity_value / min_r) * 33.0 if min_r > 0 else 0.0
-        
-    # 5. upper red range (33 - 0) -> not sufficient
-    if gravity_value > max_r:
+            interval = max_y - center
+            if interval > 0:
+                return 100.0 - ((gravity_value - center) / interval) * 34.0
+        return 100.0
+
+    # 2. LOWER YELLOW ZONE (Too little movement, slightly rigid) -> Score 33 to 66
+    elif min_r <= gravity_value < min_y:
+        interval = min_y - min_r
+        if interval > 0:
+            return 33.0 + ((gravity_value - min_r) / interval) * 33.0
+        return 66.0
+
+    # 3. LOWER RED ZONE (Completely frozen/statue) -> Score 0 to 33
+    elif gravity_value < min_r:
+        interval = min_r - 0.0
+        if interval > 0:
+            return ((gravity_value - 0.0) / interval) * 33.0
+        return 33.0
+
+    # 4. UPPER YELLOW ZONE (Too much movement, slightly anxious) -> Score 33 to 66
+    elif max_y < gravity_value <= max_r:
+        interval = max_r - max_y
+        if interval > 0:
+            return 66.0 - ((gravity_value - max_y) / interval) * 33.0
+        return 66.0
+
+    # 5. UPPER RED ZONE (Excessive movement, very anxious) -> Score 0 to 33
+    else: # gravity_value > max_r
         if gravity_value >= 100.0:
             return 0.0
-        # gradually decreases from 33 to 0
-        return 33.0 - ((gravity_value - max_r) / (100.0 - max_r)) * 33.0
-        
-    return 0.0
+        interval = 100.0 - max_r
+        if interval > 0:
+            return 33.0 - ((gravity_value - max_r) / interval) * 33.0
+        return 0.0
