@@ -142,18 +142,18 @@ while running:
 
             # Analisi del contatto visivo
             stato_sguardo = "Contatto Visivo"
-            colore_sguardo = (0, 255, 0)
+            color_sguardo = (0, 255, 0)
 
             # Soglie generiche da testare e calibrare (dipendono dalla forma dell'occhio)
             if gaze_ratio < 0.6:
                 stato_sguardo = "Sguardo a Sinistra"
-                colore_sguardo = (0, 0, 255)
+                color_sguardo = (0, 0, 255)
             elif gaze_ratio > 1.4:
                 stato_sguardo = "Sguardo a Destra"
-                colore_sguardo = (0, 0, 255)
+                color_sguardo = (0, 0, 255)
 
             # Mostro i dati a schermo
-            cv2.putText(frame, f"Sguardo: {stato_sguardo}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, colore_sguardo, 2)
+            cv2.putText(frame, f"Sguardo: {stato_sguardo}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color_sguardo, 2)
             cv2.putText(frame, f"Gaze Ratio: {gaze_ratio:.2f}", (20, 260), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             # --- FINE LOGICA TRACCIAMENTO SGUARDO ---
     if stato_sguardo != "Contatto Visivo":
@@ -161,7 +161,7 @@ while running:
         
 
     cv2.putText(frame, f"Tempo Area Viso: {tempo_occhi_girati:.1f} s", (10, 100), 
-            cv2.FONT_HERSHEY_SIMPLEX, 0.8, colore_sguardo, 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_sguardo, 2)
      
     cv2.imshow("Movimento Viso", frame)
 

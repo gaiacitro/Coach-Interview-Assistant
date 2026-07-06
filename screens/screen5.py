@@ -56,7 +56,7 @@ class Screen5(ctk.CTkScrollableFrame):
         if not data:
             data = DEFAULT_INTERVIEW_DATA
 
-        ## first part: question by question analysis with reformulated answer and CV data
+        # first part: question by question analysis with reformulated answer and CV data
         ctk.CTkLabel(center_frame, text="Questions & Answers Analysis", font=section_title_font, text_color=TEXT_SUB).pack(anchor="w", pady=(10, 20), padx=20)
 
         all_question_scores = []  #list to track the scores for each question
@@ -92,25 +92,17 @@ class Screen5(ctk.CTkScrollableFrame):
             canvas_w = 320
             canvas_h = 16
 
-            v_count = item.get('vocal_fillers', 0)
-            v_dict = item.get('vocal_fillers_dict', {})
-            v_string = f"{v_count}\n" + "\n".join([f"    - {w} [{c}]" for w, c in v_dict.items()]) if v_count > 0 else "0" ###### si può togliere?
-
-            f_count = item.get('filler_words', 0)
-            f_dict = item.get('filler_words_dict', {})
-            f_string = f"{f_count}\n" + "\n".join([f"    - {w} [{c}]" for w, c in f_dict.items()]) if f_count > 0 else "0" ###### si può togliere?
-
             cv_data = item.get("cv_data", {})
             cv_face = cv_data.get("gaze_face", {})
             cv_hand = cv_data.get("hand_gesture", {})
 
-            # ---- speech frame ----
+            # SPEECH ANALYSIS FRAME
             speech_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
             speech_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
             
             ctk.CTkLabel(speech_frame, text="🎤 Speech Analysis", font=box_title_font, text_color=TEXT_SUB).pack(anchor="center", pady=(20, 15))
             
-            # Qui riceviamo TUTTI i dati da score.py, compreso il risultato finale!
+            # we get ALL the speech data from score.py 
             report_speech = speech_performance_evaluation(item)
 
             val_long = report_speech.get("long_pauses", {})
@@ -138,10 +130,10 @@ class Screen5(ctk.CTkScrollableFrame):
             draw_gravity_bar(bar_canvas_s, speech_percent, BAR_THRESHOLDS["speech_gravity"])
 
             # feedback text
-            testo_s, colore_s = get_feedback_text_and_color(speech_percent, BAR_THRESHOLDS["speech_gravity"])
-            ctk.CTkLabel(speech_frame, text=testo_s, font=regular_font, text_color=colore_s).pack(anchor="center", pady=(0, 5))
+            text_s, color_s = get_feedback_text_and_color(speech_percent, BAR_THRESHOLDS["speech_gravity"])
+            ctk.CTkLabel(speech_frame, text=text_s, font=regular_font, text_color=color_s).pack(anchor="center", pady=(0, 5))
             
-            # ---- gaze/face frame ----
+            # GAZE & HEAD ANALYSIS FRAME
             face_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
             face_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
             cv_data = item.get("cv_data", {})
@@ -169,7 +161,7 @@ class Screen5(ctk.CTkScrollableFrame):
             ctk.CTkLabel(face_frame, text="TOTAL GAZE GRAVITY", font=box_title_font, text_color="#333333").pack(anchor="center", pady=(15, 5))
 
             gaze_percent = int(report_cv.get('head_total', 0.0))
-            gaze_percent_clamped = max(0, min(100, gaze_percent)) # Limita tra 0 e 100 per non far uscire la lineetta dal disegno
+            gaze_percent_clamped = max(0, min(100, gaze_percent)) # limitation between 0 and 100 to prevent the indicator from going outside the drawing
             
             # customized colored bar
             bar_canvas = ctk.CTkCanvas(face_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
@@ -178,10 +170,10 @@ class Screen5(ctk.CTkScrollableFrame):
             draw_gravity_bar(bar_canvas, gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
 
             # feedback text
-            testo_g, colore_g = get_feedback_text_and_color(gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
-            ctk.CTkLabel(face_frame, text=testo_g, font=regular_font, text_color=colore_g).pack(anchor="center", pady=(0, 5))
+            text_g, color_g = get_feedback_text_and_color(gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
+            ctk.CTkLabel(face_frame, text=text_g, font=regular_font, text_color=color_g).pack(anchor="center", pady=(0, 5))
             
-            # ---- hand frame ----
+            # HAND ANALYSIS FRAME
             hand_frame = ctk.CTkFrame(stats_container, fg_color="#F3F6F3", corner_radius=20)
             hand_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10, ipadx=15, ipady=15)
             
@@ -206,15 +198,15 @@ class Screen5(ctk.CTkScrollableFrame):
             draw_gravity_bar(bar_canvas_h, hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
 
             # feedback text
-            testo_h, colore_h = get_feedback_text_and_color(hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
-            ctk.CTkLabel(hand_frame, text=testo_h, font=regular_font, text_color=colore_h).pack(anchor="center", pady=(0, 5))
+            text_h, color_h = get_feedback_text_and_color(hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
+            ctk.CTkLabel(hand_frame, text=text_h, font=regular_font, text_color=color_h).pack(anchor="center", pady=(0, 5))
             
             q_score_frame = ctk.CTkFrame(card, fg_color="transparent")
             q_score_frame.pack(pady=(15, 10), anchor="center")
             
             ctk.CTkLabel(q_score_frame, text="Score: ", font=box_title_font, text_color="#333333").pack(side="left")
             
-            # --- conversion to perfection score (0-100) ---
+            # conversion to perfection score (0-100)
             perf_speech = calculate_perfection_score(speech_percent, BAR_THRESHOLDS["speech_gravity"])
             perf_gaze = calculate_perfection_score(gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
             perf_hand = calculate_perfection_score(hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
@@ -265,18 +257,18 @@ class Screen5(ctk.CTkScrollableFrame):
                 sugg_row.pack(anchor="w", padx=20, pady=2)
                 
                 
-                pallino_symbol = "●"
-                ctk.CTkLabel(sugg_row, text=f"{pallino_symbol} ", font=regular_font, text_color=color).pack(side="left")
+                dot_symbol = "●"
+                ctk.CTkLabel(sugg_row, text=f"{dot_symbol} ", font=regular_font, text_color=color).pack(side="left")
                 
-                # Testo suggestion
+                # Text suggestion
                 ctk.CTkLabel(sugg_row, text=suggestion_text, font=regular_font, text_color="#333333", wraplength=800, justify="left").pack(side="left", fill="both", expand=True)
         else:
             
             ctk.CTkLabel(feedback_frame, text="No specific suggestions at this time.", 
                          font=regular_font, text_color="#888888").pack(anchor="w", padx=20, pady=5)
 
+
         ## download report button
-        
         ctk.CTkButton(center_frame, text="Download Report", font=buttons_font, 
                       fg_color=TEXT_MAIN, text_color="white", hover_color=TEXT_SUB, 
                       width=250, height=55, corner_radius=15,
