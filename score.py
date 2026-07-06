@@ -149,7 +149,7 @@ def speech_metric_evaluation(value, base_parameter, metric_name):
     }
 
 def speech_performance_evaluation(speech_data_dict):
-    # Calculate the duration avoiding division by zero
+
     sec_duration = max(speech_data_dict.get("audio_duration", 1.0), 0.1)
     answer_text = speech_data_dict.get("text", "")
     
@@ -157,7 +157,7 @@ def speech_performance_evaluation(speech_data_dict):
     
     evaluated_report = {}
     
-    # Evaluate each speech metric and store the results in the evaluated_report dictionary
+    # Calculate individual metrics for the colored dots
     evaluated_report["vocal_fillers"] = speech_metric_evaluation(
         speech_data_dict.get('vocal_fillers', 0), total_words, "vocal_fillers"
     )
@@ -174,29 +174,39 @@ def speech_performance_evaluation(speech_data_dict):
         speech_data_dict.get('tremor', 0), None, "tremor"
     )
     
-
-    # Calulate the total speech gravity score 
+    # compute words per minute (WPM) 
     t_m = sec_duration / 60.0
+    wpm = total_words / t_m
+    evaluated_report["words_per_minute"] = speech_metric_evaluation(
+        wpm, None, "words_per_minute"
+    )
     
+    # compute the final speech gravity score based on weighted metrics
     val_long = evaluated_report["long_pauses"]["real_value"]
     val_micro = evaluated_report["micro_silences"]["real_value"]
-    val_vocal = evaluated_report["vocal_fillers"]["real_value"]
-    val_filler = evaluated_report["filler_words"]["real_value"]
     val_tremor = evaluated_report["tremor"]["calculated_value"]
+    
+    vocal_pct = evaluated_report["vocal_fillers"]["calculated_value"]
+    filler_pct = evaluated_report["filler_words"]["calculated_value"]
     
     long_pm = val_long / t_m if t_m > 0 else 0
     micro_pm = val_micro / t_m if t_m > 0 else 0
-    filler_pm = val_filler / t_m if t_m > 0 else 0
-    vocal_pm = val_vocal / t_m if t_m > 0 else 0
     
+    # add a penalty for speaking too slowly (below 100 WPM)
+    wpm_penalty = 0
+    if wpm < 100:
+        wpm_penalty = (100 - wpm) * 0.5
+        
     speech_gravity_raw = (
         (val_tremor * 0.4) +               
         (long_pm * 25) +                  
         (micro_pm * 1.5) +                
-        (max(0, filler_pm - 2) * 4) +     
-        (max(0, vocal_pm - 3) * 4)       
+        (max(0, filler_pct - 2) * 2) +     
+        (max(0, vocal_pct - 3) * 2) +
+        wpm_penalty
     )
     
+    # save the score in the dictionary, limiting it to 100%
     evaluated_report["speech_gravity"] = min(speech_gravity_raw, 100.0)
     
     return evaluated_report
