@@ -48,35 +48,8 @@ class InterviewAPI:
             return q
         else:
             return "END"
-    """
-    # =================================================================
-    # VERSION 1: TEST MODE (MOCK RECORDING) 
-    # =================================================================
-    def start_recording(self):
-        print("\n>>> [REC - TEST MODE] Audio recording started. Vision tracking + calibration already active.")
-        self.start_time = time.time()
-        self.is_recording = True
 
-    def stop_and_save_recording(self):
-        cv_data_dict = self.vision_tracker.stop()
-
-        if self.current_q_index % 2 != 0:
-            file_path = "response_q1.wav"
-        else:
-            file_path = "response_q2.wav"
-            
-        self.is_recording = False
-
-        self.session_results.append({
-            "question": self.current_question_text,
-            "audio_file": file_path,
-            "cv_data": cv_data_dict  
-        })
-    """
-    # =================================================================
-    # VERSION 2: REAL RECORDING MODE 
-    # =================================================================
-    
+    #start the recording and vision tracking
     def start_recording(self):
         print("\n>>> [REC] Audio recording started. Vision tracking + calibration already active.")
         max_duration = 300 

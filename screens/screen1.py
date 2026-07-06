@@ -41,8 +41,8 @@ class Screen1(ctk.CTkFrame):
                                      command=lambda: self.controller.show_screen("Screen2Job"))
         self.btn_job.pack(fill="x", padx=60, pady=10)
 
-        # University button
-        self.btn_uni = ctk.CTkButton(self, text="University oral exam", font=buttons_font,
+        # Exam button
+        self.btn_uni = ctk.CTkButton(self, text="Oral exam", font=buttons_font,
                                      fg_color=BTN_BG, text_color=BTN_TEXT, hover_color=BTN_HOVER,
                                      corner_radius=12, height=60,
                                      command=lambda: self.controller.show_screen("Screen2Uni"))

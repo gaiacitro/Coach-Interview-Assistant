@@ -201,7 +201,7 @@ def generate_suggestions(data):
     counters = {metric: {"low": 0, "high": 0, "optimal": 0} for metric in metric_mapping.keys()}
     
     for item in data:
-        # ===== DATI CV/VISION =====
+        # CV/VISION DATA
         cv_data = item.get("cv_data", {})
         face_data = cv_data.get("gaze_face", {})
         hand_data = cv_data.get("hand_gesture", {})
@@ -299,14 +299,14 @@ def get_questions_to_review(data):
     for idx, item in enumerate(data):
         red_count = 0
         
-        # --- speech percent ---
+        # speech percent 
         report_speech = speech_performance_evaluation(item)
         speech_percent = int(max(0, report_speech.get("speech_gravity", 0.0)))
         
         if speech_percent < BAR_THRESHOLDS["speech_gravity"][1] or speech_percent > BAR_THRESHOLDS["speech_gravity"][3]:
             red_count += 1
             
-        # --- gaze percent (head_total) ---
+        # gaze percent 
         cv_data = item.get("cv_data", {})
         report_cv = cv_performance_evaluation(cv_data)
         gaze_percent = int(max(0, report_cv.get('head_total', 0.0)))
@@ -314,13 +314,13 @@ def get_questions_to_review(data):
         if gaze_percent < BAR_THRESHOLDS["head_total"][1] or gaze_percent > BAR_THRESHOLDS["head_total"][3]:
             red_count += 1
             
-        # --- hand percent (hand_gravity) ---
+        # hand percent 
         hand_percent = int(max(0, report_cv.get('hand_gravity', 0.0)))
         
         if hand_percent < BAR_THRESHOLDS["hand_gravity"][1] or hand_percent > BAR_THRESHOLDS["hand_gravity"][3]:
             red_count += 1
             
-        # --- evaluation ---
+        # evaluation 
         if red_count >= 2:
             questions_to_review.append(f"• Q{idx+1}: {item['question']}")
             
@@ -365,18 +365,18 @@ def draw_gravity_bar(canvas, percent, thresholds, canvas_w=320, canvas_h=16):
     """Disegna l'intera barra colorata e l'indicatore nero sul canvas fornito."""
     segments = get_threshold_segments(canvas_w, canvas_h, thresholds)
     
-    # Archi arrotondati ai lati
+    # design the rounded ends of the bar
     canvas.create_arc(0, 0, canvas_h, canvas_h, start=90, extent=180, fill=segments[0][2], outline=segments[0][2])
     canvas.create_arc(canvas_w - canvas_h, 0, canvas_w, canvas_h, start=-90, extent=180, fill=segments[-1][2], outline=segments[-1][2])
     
-    # Corpo centrale della barra
+    # Draw the colored segments of the bar
     for x_start, x_end, color in segments:
         adjusted_start = max(x_start, canvas_h / 2)
         adjusted_end = min(x_end, canvas_w - canvas_h / 2)
         if adjusted_end > adjusted_start:
             canvas.create_rectangle(adjusted_start, 0, adjusted_end, canvas_h, fill=color, outline=color)
 
-    # Linea nera indicatore
+    # Draw the black indicator line for the current percentage
     marker_x = (percent / 100) * canvas_w
     canvas.create_line(marker_x, -2, marker_x, canvas_h + 10, fill="black", width=4)
 

@@ -119,10 +119,12 @@ class UnifiedVisionTracker:
             min_hand_y = float('inf')
             box_touch_detected = False
 
+            #FACE AND GAZE ANALYSIS
             if face_results.face_landmarks:
                 face_landmarks = face_results.face_landmarks[0]
                 chin_y = int(face_landmarks[152].y * h_frame)
                 
+                # Create a dynamic bounding box around the face to detect if hands overlap it
                 xs = [int(lm.x * w_frame) for lm in face_landmarks]
                 ys = [int(lm.y * h_frame) for lm in face_landmarks]
                 min_x, max_x = min(xs), max(xs)
@@ -130,6 +132,7 @@ class UnifiedVisionTracker:
                 ear_margin = int(face_width * 0.15)
                 face_box_area = (max(0, min_x - ear_margin), min(ys), min(w_frame, max_x + ear_margin), max(ys))
 
+                # Gaze tracking: Calculate the ratio between the inner eye corner to the iris and the iris to the outer eye corner.
                 p_outer = (int(face_landmarks[33].x * w_frame), int(face_landmarks[33].y * h_frame))
                 p_inner = (int(face_landmarks[133].x * w_frame), int(face_landmarks[133].y * h_frame))
                 p_iris = (int(face_landmarks[468].x * w_frame), int(face_landmarks[468].y * h_frame))
@@ -156,12 +159,15 @@ class UnifiedVisionTracker:
                     angles, _, _, _, _, _ = cv2.RQDecomp3x3(rmat)
                     raw_pitch, raw_yaw, raw_roll = angles[0], angles[1], angles[2]
 
+                    # Normalize angles to a standard -180 to 180 range
                     if raw_roll < -90: raw_roll += 180
                     elif raw_roll > 90: raw_roll -= 180
                     if raw_pitch < -90: raw_pitch += 180
                     elif raw_pitch > 90: raw_pitch -= 180
 
                     elapsed_time = time.time() - self.calibration_start_time
+
+                    # Spend the first few seconds gathering data to establish what "looking straight ahead" means for this user
                     if self.calibrating:
                         if elapsed_time < self.calibration_duration:
                             if elapsed_time >= (self.calibration_duration - 1.0):
@@ -183,11 +189,13 @@ class UnifiedVisionTracker:
                         self.pitch_history.append(pitch)
                         self.yaw_history.append(yaw)
                         self.roll_history.append(roll)
-
+                        
+                        # Detect highly erratic head movements by checking the standard deviation over the last 30 frames
                         if len(self.yaw_history) == 30:
                             if np.std(self.yaw_history) > 15 or np.std(self.pitch_history) > 15:
                                 self.face_instability_time += delta_time
-
+                        
+                        # Determine categorical head state
                         head_state = "Frontal"
                         if pitch > 13: 
                             head_state = "Looking Down"
@@ -209,7 +217,7 @@ class UnifiedVisionTracker:
                         if head_state == "Looking Down":
                             self.head_down_time += delta_time
 
-            # Hand controls
+            # HAND AND GESTURE ANALYSIS
             if hand_results.hand_landmarks:
                 for hand_landmarks in hand_results.hand_landmarks:
                     for lm in hand_landmarks:
@@ -258,7 +266,7 @@ class UnifiedVisionTracker:
         if self.thread:
             self.thread.join(timeout=1.0)
         
-        # Package CV data (Solo dati grezzi, niente formule qui!)
+        # Package CV data 
         cv_data_dict = {
             "gaze_face": {
                 "total_time_answer": self.total_time_answer,
