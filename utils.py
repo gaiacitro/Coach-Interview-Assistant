@@ -1,6 +1,10 @@
 # utils.py
 import customtkinter as ctk
 from config import APP_FONT
+from score import speech_performance_evaluation, cv_performance_evaluation, calculate_perfection_score, BAR_THRESHOLDS, SPEECH_DOT_THRESHOLD, CV_DOT_THRESHOLD
+from suggestions import SUGGESTIONS
+
+
 
 DEFAULT_INTERVIEW_DATA = [
     {
@@ -65,7 +69,6 @@ DEFAULT_INTERVIEW_DATA = [
 
 
 def generate_report_text(data, final_score):
-    from score import speech_performance_evaluation, cv_performance_evaluation, calculate_perfection_score, BAR_THRESHOLDS
     
     report_text = "========================================================\n"
     report_text += "                 INTERVIEW REPORT                        \n"
@@ -174,26 +177,6 @@ def generate_suggestions(data):
     Suggestions appear ONLY if the metric has been RED or GREEN
     at least (n // 2) + 1 times. Yellow values are ignored.
     """
-    from suggestions import SUGGESTIONS
-    
-    cv_thresholds = {
-        "eye_gaze_time": (0.0, 2.0, 10.0, 17.0),
-        "face_tremor_time": (0.0, 0.0, 3.5, 5.0),
-        "head_movement_time": (0.0, 1.5, 7.0, 10.0),
-        "head_down": (0.0, 0.0, 1.8, 3.0),
-        "hand_general_time": (0.0, 2.0, 15.0, 20.0),   
-        "face_touch_time": (0.0, 0.0, 2.0, 5.0), 
-        "face_overlap_time": (0.0, 0.0, 5.0, 7.0)
-    }
-    
-    speech_thresholds = {
-        "vocal_fillers": (0.0, 0.0, 5.0, 8.0),     
-        "filler_words": (0.0, 0.0, 2.0, 5.0),    
-        "micro_silences": (0.0, 0.0, 5.0, 12.0), 
-        "long_pauses": (0.0, 0.0, 0.0, 1.0),     
-        "tremor": (0.0, 0.0, 33.0, 66.0)          
-    }
-    
     metric_mapping = {
         "eye_gaze_time": "eye_gaze_time",
         "face_tremor_time": "face_tremor_time",
@@ -236,7 +219,7 @@ def generate_suggestions(data):
         }
         
         for metric_key, sec__value in cv_metrics.items():
-            min_red, min_yellow, max_yellow, max_red = cv_thresholds.get(metric_key, (0, 0, 100, 100))
+            min_red, min_yellow, max_yellow, max_red = CV_DOT_THRESHOLD.get(metric_key, (0, 0, 100, 100))
             percentage = (sec__value / tot_time) * 100
             
             # count only if it's Red (Low/High) or Green (Optimal). Ignore Yellow.
@@ -265,7 +248,7 @@ def generate_suggestions(data):
         }
         
         for metric_key, valore in speech_metrics.items():
-            min_red, min_yellow, max_yellow, max_red = speech_thresholds.get(metric_key, (-1.0, -1.0, 100, 100))
+            min_red, min_yellow, max_yellow, max_red = SPEECH_DOT_THRESHOLD.get(metric_key, (-1.0, -1.0, 100, 100))
             
             # Count only if it's Red (Low/High) or Green (Optimal). Ignore Yellow.
             if valore < min_red:
@@ -306,51 +289,35 @@ def add_dot(parent_frame, label_text, val_dict):
             ctk.CTkLabel(row, text=label_text, font=regular_font, text_color="#333333").pack(side="left")
 
 def get_questions_to_review(data):
-
     """
     Analyze the total scores (Speech, Gaze, Hand) for each question.
     If at least 2 out of 3 categories are in the red (too high or too low),
     the question is flagged for review.
-    """
-    from score import speech_performance_evaluation
-    
+    """    
     questions_to_review = []
     
     for idx, item in enumerate(data):
         red_count = 0
         
+        # --- speech percent ---
         report_speech = speech_performance_evaluation(item)
-        val_long = report_speech.get("long_pauses", {}).get('calculated_value', 0)
-        val_micro = report_speech.get("micro_silences", {}).get('calculated_value', 0)
-        val_vocal = report_speech.get("vocal_fillers", {}).get('calculated_value', 0)
-        val_filler = report_speech.get("filler_words", {}).get('calculated_value', 0)
-        val_tremor = report_speech.get("tremor", {}).get('calculated_value', 0)
+        speech_percent = int(max(0, report_speech.get("speech_gravity", 0.0)))
         
-        speech_gravity_raw = (
-            val_tremor * 0.4 + 
-            val_long * 20 + 
-            val_micro * 1.5 + 
-            max(0, val_filler - 2) * 5 + 
-            abs(val_vocal - 3.5) * 5
-        )
-        speech_percent = int(max(0, min(100, speech_gravity_raw)))
-        
-        if speech_percent < 5.0 or speech_percent > 85.0:
+        if speech_percent < BAR_THRESHOLDS["speech_gravity"][1] or speech_percent > BAR_THRESHOLDS["speech_gravity"][3]:
             red_count += 1
             
         # --- gaze percent (head_total) ---
         cv_data = item.get("cv_data", {})
-        cv_face = cv_data.get("gaze_face", {})
-        gaze_percent = int(cv_face.get('head_total', 0.0))
+        report_cv = cv_performance_evaluation(cv_data)
+        gaze_percent = int(max(0, report_cv.get('head_total', 0.0)))
         
-        if gaze_percent < 5.0 or gaze_percent > 85.0:
+        if gaze_percent < BAR_THRESHOLDS["head_total"][1] or gaze_percent > BAR_THRESHOLDS["head_total"][3]:
             red_count += 1
             
         # --- hand percent (hand_gravity) ---
-        cv_hand = cv_data.get("hand_gesture", {})
-        hand_percent = int(cv_hand.get('hand_gravity', 0.0))
+        hand_percent = int(max(0, report_cv.get('hand_gravity', 0.0)))
         
-        if hand_percent < 5.0 or hand_percent > 80.0:
+        if hand_percent < BAR_THRESHOLDS["hand_gravity"][1] or hand_percent > BAR_THRESHOLDS["hand_gravity"][3]:
             red_count += 1
             
         # --- evaluation ---

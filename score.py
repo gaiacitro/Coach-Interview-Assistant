@@ -1,25 +1,42 @@
 # score.py
 
+
+# Thresholds for colored bars and Final Score
+BAR_THRESHOLDS = {
+    "speech_gravity": (0.0, 5.0, 45.0, 75.0),
+    "head_total": (0.0, 5.0, 22.0, 50.0),
+    "hand_gravity": (0.0, 5.0, 20.0, 45.0)
+}
+
+CV_DOT_THRESHOLD = {
+    "eye_gaze_time": (0.0, 2.0, 10.0, 17.0),
+    "face_tremor_time": (0.0, 0.0, 3.5, 5.0),
+    "head_movement_time": (0.0, 1.5, 7.0, 10.0),
+    "head_down": (0.0, 0.0, 1.8, 3.0),
+    "hand_general_time": (0.0, 2.0, 15.0, 20.0),   
+    "face_touch_time": (0.0, 0.0, 2.0, 5.0), 
+    "hand_gravity" : (5.0, 35.0, 55.0, 80.0),#QUESTO COME LO CAMBIO??
+    "head_total": (5.0, 25.0, 60.0, 85.0),#QUESTO COME LO CAMBIO??
+    "face_overlap_time": (0.0, 0.0, 5.0, 7.0)  
+}
+
+SPEECH_DOT_THRESHOLD = {
+    "vocal_fillers": (0.0, 0.0, 5.0, 8.0),     
+    "filler_words": (0.0, 0.0, 2.0, 5.0),    
+    "micro_silences": (0.0, 0.0, 5.0, 12.0), 
+    "long_pauses": (0.0, 0.0, 0.0, 1.0),     
+    "tremor": (0.0, 0.0, 33.0, 66.0)         
+}
+
+
 def cv_metric_evaluation(sec_value, total_time, metric_name):
-    # Thresholds: (min_red, min_yellow, max_yellow, max_red)
-    cv_dot_thresholds = {
-        "eye_gaze_time": (0.0, 2.0, 10.0, 17.0),
-        "face_tremor_time": (0.0, 0.0, 3.5, 5.0),
-        "head_movement_time": (0.0, 1.5, 7.0, 10.0),
-        "head_down": (0.0, 0.0, 1.8, 3.0),
-        "hand_general_time": (0.0, 2.0, 15.0, 20.0),   
-        "face_touch_time": (0.0, 0.0, 2.0, 5.0), 
-        "hand_gravity" : (5.0, 35.0, 55.0, 80.0),#QUESTO COME LO CAMBIO??
-        "head_total": (5.0, 25.0, 60.0, 85.0),#QUESTO COME LO CAMBIO??
-        "face_overlap_time": (0.0, 0.0, 5.0, 7.0)  
-    }
     
     # t_m normalization (seconds per minute)
     total_time = max(total_time, 0.1)
     t_m = total_time / 60.0
     val_pm = sec_value / t_m
     
-    min_red, min_yellow, max_yellow, max_red = cv_dot_thresholds.get(metric_name, (0, 0, 100, 100))
+    min_red, min_yellow, max_yellow, max_red = CV_DOT_THRESHOLD.get(metric_name, (0, 0, 100, 100))
     dot = "●"
     
     if val_pm < min_red:
@@ -103,13 +120,6 @@ def cv_performance_evaluation(cv_data_dict):
  
 
 def speech_metric_evaluation(value, base_parameter, metric_name):
-    speech_dot_thresholds = {
-        "vocal_fillers": (0.0, 0.0, 5.0, 8.0),     
-        "filler_words": (0.0, 0.0, 2.0, 5.0),    
-        "micro_silences": (0.0, 0.0, 5.0, 12.0), 
-        "long_pauses": (0.0, 0.0, 0.0, 1.0),     
-        "tremor": (0.0, 0.0, 33.0, 66.0)         
-    }
     
     if metric_name in ["vocal_fillers", "filler_words"]:
         word_base = max(base_parameter, 1) 
@@ -120,7 +130,7 @@ def speech_metric_evaluation(value, base_parameter, metric_name):
     else:
         calculated_value = value
 
-    min_red, min_yellow, max_yellow, max_red = speech_dot_thresholds.get(metric_name, (0, 0, 100, 100))
+    min_red, min_yellow, max_yellow, max_red = SPEECH_DOT_THRESHOLD.get(metric_name, (0, 0, 100, 100))
     dot = "●" 
     
     if calculated_value < min_red:

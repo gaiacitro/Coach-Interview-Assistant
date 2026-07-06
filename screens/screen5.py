@@ -11,7 +11,7 @@ from utils import (
     get_color_by_score
 )  
 from tkinter import filedialog
-from score import speech_performance_evaluation, cv_performance_evaluation, calculate_perfection_score
+from score import speech_performance_evaluation, cv_performance_evaluation, calculate_perfection_score, BAR_THRESHOLDS
 from config import (
     CARD_BG, 
     CARD_BORDER, 
@@ -60,12 +60,6 @@ class Screen5(ctk.CTkScrollableFrame):
         ctk.CTkLabel(center_frame, text="Questions & Answers Analysis", font=section_title_font, text_color=TEXT_SUB).pack(anchor="w", pady=(10, 20), padx=20)
 
         all_question_scores = []  #list to track the scores for each question
-        #unique dictionary for the thresholds of the colored bars and the final score
-        threshold_bars = {
-            "speech_gravity": (0.0, 5.0, 45.0, 75.0),
-            "head_total": (0.0, 5.0, 22.0, 50.0),
-            "hand_gravity": (0.0, 5.0, 20.0, 45.0)
-        }
 
         for idx, item in enumerate(data):
             card = ctk.CTkFrame(center_frame, fg_color="white", corner_radius=15, border_width=2, border_color="#E8ECE8")
@@ -141,10 +135,10 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas_s = ctk.CTkCanvas(speech_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas_s.pack(anchor="center", pady=(0, 0))
 
-            draw_gravity_bar(bar_canvas_s, speech_percent, threshold_bars["speech_gravity"])
+            draw_gravity_bar(bar_canvas_s, speech_percent, BAR_THRESHOLDS["speech_gravity"])
 
             # feedback text
-            testo_s, colore_s = get_feedback_text_and_color(speech_percent, threshold_bars["speech_gravity"])
+            testo_s, colore_s = get_feedback_text_and_color(speech_percent, BAR_THRESHOLDS["speech_gravity"])
             ctk.CTkLabel(speech_frame, text=testo_s, font=regular_font, text_color=colore_s).pack(anchor="center", pady=(0, 5))
             
             # ---- gaze/face frame ----
@@ -181,10 +175,10 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas = ctk.CTkCanvas(face_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas.pack(anchor="center", pady=(0, 0))
 
-            draw_gravity_bar(bar_canvas, gaze_percent_clamped, threshold_bars["head_total"])
+            draw_gravity_bar(bar_canvas, gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
 
             # feedback text
-            testo_g, colore_g = get_feedback_text_and_color(gaze_percent_clamped, threshold_bars["head_total"])
+            testo_g, colore_g = get_feedback_text_and_color(gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
             ctk.CTkLabel(face_frame, text=testo_g, font=regular_font, text_color=colore_g).pack(anchor="center", pady=(0, 5))
             
             # ---- hand frame ----
@@ -209,10 +203,10 @@ class Screen5(ctk.CTkScrollableFrame):
             bar_canvas_h = ctk.CTkCanvas(hand_frame, width=canvas_w, height=canvas_h + 10, bg="#F3F6F3", highlightthickness=0)
             bar_canvas_h.pack(anchor="center", pady=(0, 0))
             
-            draw_gravity_bar(bar_canvas_h, hand_percent_clamped, threshold_bars["hand_gravity"])
+            draw_gravity_bar(bar_canvas_h, hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
 
             # feedback text
-            testo_h, colore_h = get_feedback_text_and_color(hand_percent_clamped, threshold_bars["hand_gravity"])
+            testo_h, colore_h = get_feedback_text_and_color(hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
             ctk.CTkLabel(hand_frame, text=testo_h, font=regular_font, text_color=colore_h).pack(anchor="center", pady=(0, 5))
             
             q_score_frame = ctk.CTkFrame(card, fg_color="transparent")
@@ -221,9 +215,9 @@ class Screen5(ctk.CTkScrollableFrame):
             ctk.CTkLabel(q_score_frame, text="Score: ", font=box_title_font, text_color="#333333").pack(side="left")
             
             # --- conversion to perfection score (0-100) ---
-            perf_speech = calculate_perfection_score(speech_percent, threshold_bars["speech_gravity"])
-            perf_gaze = calculate_perfection_score(gaze_percent_clamped, threshold_bars["head_total"])
-            perf_hand = calculate_perfection_score(hand_percent_clamped, threshold_bars["hand_gravity"])
+            perf_speech = calculate_perfection_score(speech_percent, BAR_THRESHOLDS["speech_gravity"])
+            perf_gaze = calculate_perfection_score(gaze_percent_clamped, BAR_THRESHOLDS["head_total"])
+            perf_hand = calculate_perfection_score(hand_percent_clamped, BAR_THRESHOLDS["hand_gravity"])
 
             # Now we calculate the average of the perfection scores (0 -> total failure, 100 -> absolute perfection)
             score_value = int((perf_speech + perf_gaze + perf_hand) / 3.0) 
