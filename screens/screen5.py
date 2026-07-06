@@ -190,8 +190,8 @@ class Screen5(ctk.CTkScrollableFrame):
             
             # principal statistics with colored dots
             add_dot(hand_frame, f"Gesticulation: {cv_hand.get('hand_general_time', 0.0):.1f}s", val_gest)
-            add_dot(hand_frame, f"Big gestures: {cv_hand.get('face_touch_time', 0.0):.1f}s", val_touch)
-            add_dot(hand_frame, f"Touching Face: {cv_hand.get('face_overlap_time', 0.0):.1f}s", val_overlap)
+            add_dot(hand_frame, f"Big gestures: {cv_hand.get('big_gestures', 0.0):.1f}s", val_touch)
+            add_dot(hand_frame, f"Touching Face: {cv_hand.get('touching_face', 0.0):.1f}s", val_overlap)
             
             # total hand gesture gravity
             ctk.CTkLabel(hand_frame, text="TOTAL GESTURE GRAVITY", font=box_title_font, text_color="#333333").pack(anchor="center", pady=(15, 5))

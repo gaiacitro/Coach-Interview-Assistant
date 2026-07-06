@@ -33,13 +33,13 @@ SUGGESTIONS = {
         "optimal": "You have excellent spatial awareness! You use your hands just right to give rhythm to your words, appearing expressive and energetic without ever overdoing it."
     },
     
-    "face_touch_time": {
+    "big_gestures": {
         "low": "Your movements were so minimal they almost seemed timid. When you want to emphasize a key point, don't be afraid to make a slightly broader gesture to strengthen the concept.",
         "high": "You tend to bring your hands up high near your face or chest too often. Try to keep your movements confined to desk-level: you'll appear much calmer and more in control.",
         "optimal": "Measured and professional gestures! You managed to use your available space elegantly, emphasizing concepts without any abrupt or exaggerated moves."
     },
     
-    "face_overlap_time": {
+    "touching_face": {
         "low": "You didn't brush your face for even a millisecond. While this is positive, be careful not to look too focused on 'controlling' every single movement.",
         "high": "You brought your hands to your face several times. In an interview, this instinctive gesture can convey nervousness or defensiveness. Try keeping your hands clasped on your lap when you're thinking.",
         "optimal": "Congratulations! You avoided touching your face during stressful moments, maintaining an open, clean posture with no visual barriers between you and the interviewer."

@@ -144,7 +144,7 @@ def process_and_print_insecurity_analysis(session_results):
     
     for result in session_results:
         question = result["question"]
-        tempo_viso = result.get("face_touch_time", 0.0)
+        tempo_viso = result.get("big_gestures", 0.0)
         
         print(f"\nQUESTION: {question}")
         print(f"  > Hands Near Face/Chin Time: {tempo_viso:.1f} seconds")

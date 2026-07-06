@@ -70,7 +70,7 @@ class UnifiedVisionTracker:
         self.total_time_answer = 0.0 
         self.hand_general_time = 0.0
         self.hands_above_chin_time = 0.0
-        self.box_overlap_time = 0.0
+        self.touching_face_time = 0.0
         self.eyes_turned_time = 0.0
         self.face_instability_time = 0.0
         self.head_moved_time = 0.0 
@@ -223,7 +223,7 @@ class UnifiedVisionTracker:
                     self.hands_above_chin_time += delta_time
                 
                 if box_touch_detected:
-                    self.box_overlap_time += delta_time
+                    self.touching_face_time += delta_time
 
         cap.release()
 
@@ -231,7 +231,7 @@ class UnifiedVisionTracker:
         # Reset trackers
         self.hand_general_time = 0.0
         self.hands_above_chin_time = 0.0
-        self.box_overlap_time = 0.0
+        self.touching_face_time = 0.0
         self.eyes_turned_time = 0.0
         self.face_instability_time = 0.0
         self.head_moved_time = 0.0 
@@ -271,8 +271,8 @@ class UnifiedVisionTracker:
                 "total_time_answer": self.total_time_answer,
                 "hand_general_time": self.hand_general_time,
                 "hands_above_chin_time": self.hands_above_chin_time, # Aggiunto per poter fare il calcolo in score.py
-                "face_touch_time": max(0, self.hands_above_chin_time - self.box_overlap_time),
-                "face_overlap_time": self.box_overlap_time
+                "big_gestures": max(0, self.hands_above_chin_time - self.touching_face_time),
+                "touching_face": self.touching_face_time
             }
         }
         return cv_data_dict

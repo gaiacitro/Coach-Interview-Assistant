@@ -30,8 +30,8 @@ DEFAULT_INTERVIEW_DATA = [
             "hand_gesture": {
                 "total_time_answer": 43.3,
                 "hand_general_time": 2.1,
-                "face_touch_time": 1.5,
-                "face_overlap_time": 0.8,
+                "big_gestures": 1.5,
+                "touching_face": 0.8,
                 "hand_gravity": 5.4
             }
         }
@@ -59,8 +59,8 @@ DEFAULT_INTERVIEW_DATA = [
             "hand_gesture": {
                 "total_time_answer": 43.3,
                 "hand_general_time": 2.1,
-                "face_touch_time": 1.5,
-                "face_overlap_time": 0.8,
+                "big_gestures": 1.5,
+                "touching_face": 0.8,
                 "hand_gravity": 5.4
             }
         }
@@ -139,8 +139,8 @@ def generate_report_text(data, final_score):
 
         report_text += "[Hand and Gesture Analysis]\n"
         report_text += f"- Gesticulation Time: {cv_hand.get('hand_general_time', 0.0):.1f}s\n"
-        report_text += f"- Big Gestures Time: {cv_hand.get('face_touch_time', 0.0):.1f}s\n"
-        report_text += f"- Touching Face Time: {cv_hand.get('face_overlap_time', 0.0):.1f}s\n"
+        report_text += f"- Big Gestures Time: {cv_hand.get('big_gestures', 0.0):.1f}s\n"
+        report_text += f"- Touching Face Time: {cv_hand.get('touching_face', 0.0):.1f}s\n"
         report_text += f"-> Gesture Outcome: {get_text_feedback(hand_percent_clamped, BAR_THRESHOLDS['hand_gravity'])}\n\n"
         
         # COMPUTING QUESTION SCORE BASED ON SPEECH, GAZE, AND HAND PERFORMANCE
@@ -183,8 +183,8 @@ def generate_suggestions(data):
         "head_movement_time": "head_movement_time",
         "head_down": "head_down",
         "hand_general_time": "hand_general_time",
-        "face_touch_time": "face_touch_time",
-        "face_overlap_time": "face_overlap_time",
+        "big_gestures": "big_gestures",
+        "touching_face": "touching_face",
         "vocal_fillers": "vocal_fillers",
         "filler_words": "filler_words",
         "micro_silences": "micro_silences",
@@ -214,8 +214,8 @@ def generate_suggestions(data):
             "head_movement_time": face_data.get('head_movement_time', 0.0),
             "head_down": face_data.get('head_down', 0.0),
             "hand_general_time": hand_data.get('hand_general_time', 0.0),
-            "face_touch_time": hand_data.get('face_touch_time', 0.0),
-            "face_overlap_time": hand_data.get('face_overlap_time', 0.0),
+            "big_gestures": hand_data.get('big_gestures', 0.0),
+            "touching_face": hand_data.get('touching_face', 0.0),
         }
         
         for metric_key, sec__value in cv_metrics.items():
