@@ -118,8 +118,10 @@ class Screen5(ctk.CTkScrollableFrame):
             val_vocal = report_speech.get("vocal_fillers", {})
             val_filler = report_speech.get("filler_words", {})
             val_tremor = report_speech.get("tremor", {})
+            val_wpm = report_speech.get("words_per_minute", {})
 
             # statistics with colored dots
+            add_dot(speech_frame, f"Speech Rate: {val_wpm.get('real_value', 0):.0f} words / min", val_wpm)
             add_dot(speech_frame, f"Long Pauses: {val_long.get('real_value', 0)}", val_long)
             add_dot(speech_frame, f"Micro Silences: {val_micro.get('real_value', 0)}", val_micro)
             add_dot(speech_frame, f"Vocal Fillers: {val_vocal.get('real_value', 0)}", val_vocal)
