@@ -216,6 +216,7 @@ def calculate_perfection_score(gravity_value, thresholds):
     """
     min_r, min_y, max_y, max_r = thresholds
 
+    # Only for the speech_gravity metric, we have a special case where both min_y and min_r are 0.0.
     if min_y == 0.0 and min_r == 0.0:
         if gravity_value <= max_y:
             interval = max_y - 0.0
@@ -235,6 +236,7 @@ def calculate_perfection_score(gravity_value, thresholds):
                 return 33.0 - ((gravity_value - max_r) / interval) * 33.0
             return 0.0
 
+    #for other metrics (face and gestures), we have the standard case with min_y > 0.0 and min_r > 0.0.
     # GREEN ZONE (Optimal amount of movement) -> Score 66 to 100
     if min_y <= gravity_value <= max_y:
         # Maximum perfection (100) is in the exact center of the green zone
