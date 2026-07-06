@@ -1,7 +1,7 @@
 # score.py
 # Thresholds for colored bars and Final Score
 BAR_THRESHOLDS = {
-    "speech_gravity": (0.0, 5.0, 45.0, 75.0),
+    "speech_gravity": (0.0, 0.0, 40.0, 70.0),
     "head_total": (0.0, 5.0, 24.0, 33.0),
     "hand_gravity": (0.0, 5.0, 20.0, 40.0)
 }
@@ -22,7 +22,7 @@ SPEECH_DOT_THRESHOLD = {
     "micro_silences": (0.0, 0.0, 5.0, 12.0), 
     "long_pauses": (0.0, 0.0, 0.0, 1.0),     
     "tremor": (0.0, 0.0, 33.0, 66.0),
-    "words_per_minute": (90.0, 110.0, 160.0, 180.0) # NUOVA SOGLIA (Verde tra 110 e 160)
+    "words_per_minute": (90.0, 110.0, 160.0, 180.0) 
 }
 
 
@@ -149,7 +149,7 @@ def speech_metric_evaluation(value, base_parameter, metric_name):
     }
 
 def speech_performance_evaluation(speech_data_dict):
-
+    # Protection to avoid division by zero
     sec_duration = max(speech_data_dict.get("audio_duration", 1.0), 0.1)
     answer_text = speech_data_dict.get("text", "")
     
@@ -181,32 +181,29 @@ def speech_performance_evaluation(speech_data_dict):
         wpm, None, "words_per_minute"
     )
     
-    # compute the final speech gravity score based on weighted metrics
-    val_long = evaluated_report["long_pauses"]["real_value"]
-    val_micro = evaluated_report["micro_silences"]["real_value"]
-    val_tremor = evaluated_report["tremor"]["calculated_value"]
+    # --- NEW LOGIC BASED ON DOT COLORS ---
+    dot_score = 0
+    metrics_keys = [
+        "vocal_fillers", "filler_words", "micro_silences", 
+        "long_pauses", "tremor", "words_per_minute"
+    ]
     
-    vocal_pct = evaluated_report["vocal_fillers"]["calculated_value"]
-    filler_pct = evaluated_report["filler_words"]["calculated_value"]
+    for key in metrics_keys:
+        color = evaluated_report[key]["color"]
+        if color == "#4CAF50":    # Green
+            dot_score += 1
+        elif color == "#FF9800":  # Yellow
+            dot_score += 0
+        elif color == "#F44336":  # Red
+            dot_score -= 1
+            
+    # dot_score ranges from -6 (all red) to +6 (all green).
+    # We map it to a "gravity" from 0 to 100 to move the bar:
+    # Score +6 -> 0% gravity (green bar on the left)
+    # Score -6 -> 100% gravity (red bar on the right)
+    speech_gravity_raw = ((6 - dot_score) / 12.0) * 100.0
     
-    long_pm = val_long / t_m if t_m > 0 else 0
-    micro_pm = val_micro / t_m if t_m > 0 else 0
-    
-    # add a penalty for speaking too slowly (below 100 WPM)
-    wpm_penalty = 0
-    if wpm < 100:
-        wpm_penalty = (100 - wpm) * 0.5
-        
-    speech_gravity_raw = (
-        (val_tremor * 0.4) +               
-        (long_pm * 25) +                  
-        (micro_pm * 1.5) +                
-        (max(0, filler_pct - 2) * 2) +     
-        (max(0, vocal_pct - 3) * 2) +
-        wpm_penalty
-    )
-    
-    # save the score in the dictionary, limiting it to 100%
+    # Save the score, capping it at 100.0
     evaluated_report["speech_gravity"] = min(speech_gravity_raw, 100.0)
     
     return evaluated_report
@@ -218,6 +215,25 @@ def calculate_perfection_score(gravity_value, thresholds):
     Too little movement (statue) or too much movement (anxious) reduces the score.
     """
     min_r, min_y, max_y, max_r = thresholds
+
+    if min_y == 0.0 and min_r == 0.0:
+        if gravity_value <= max_y:
+            interval = max_y - 0.0
+            if interval > 0:
+                return 100.0 - ((gravity_value - 0.0) / interval) * 34.0
+            return 100.0
+        elif gravity_value <= max_r:
+            interval = max_r - max_y
+            if interval > 0:
+                return 66.0 - ((gravity_value - max_y) / interval) * 33.0
+            return 66.0
+        else:
+            if gravity_value >= 100.0:
+                return 0.0
+            interval = 100.0 - max_r
+            if interval > 0:
+                return 33.0 - ((gravity_value - max_r) / interval) * 33.0
+            return 0.0
 
     # GREEN ZONE (Optimal amount of movement) -> Score 66 to 100
     if min_y <= gravity_value <= max_y:
