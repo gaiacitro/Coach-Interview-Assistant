@@ -2,7 +2,7 @@
 
 def cv_metric_evaluation(sec_value, total_time, metric_name):
     # Thresholds: (min_red, min_yellow, max_yellow, max_red)
-    '''thresholds = {
+    cv_dot_thresholds = {
         "eye_gaze_time": (0.0, 2.0, 10.0, 17.0),
         "face_tremor_time": (0.0, 0.0, 3.5, 5.0),
         "head_movement_time": (0.0, 1.5, 7.0, 10.0),
@@ -12,45 +12,30 @@ def cv_metric_evaluation(sec_value, total_time, metric_name):
         "hand_gravity" : (5.0, 35.0, 55.0, 80.0),#QUESTO COME LO CAMBIO??
         "head_total": (5.0, 25.0, 60.0, 85.0),#QUESTO COME LO CAMBIO??
         "face_overlap_time": (0.0, 0.0, 5.0, 7.0)  
-    }'''
-    #NUOVE TRESHOULD CON SIMULAZIONI
-    thresholds = {
-        # Gli occhi sono spesso rilevati come distratti, quindi allarghiamo la tolleranza del verde (fino a 30%) e del giallo
-        "eye_gaze_time": (0.0, 5.0, 30.0, 45.0),
-        # Testa girata: nei video corretti è circa il 10% del tempo, in quelli errati è il 30%
-        "head_movement_time": (0.0, 2.0, 15.0, 30.0),
-        # Testa in basso: quasi 0 nei video corretti, circa il 10% in quelli errati. Molto selettivo.
-        "head_down": (0.0, 0.0, 3.0, 10.0),
-        # Tremore/Annuire: da 20% nei video corretti a 50% in quelli errati
-        "face_tremor_time": (0.0, 5.0, 25.0, 50.0),
-        # Gesticolazione: il 20% del tempo (buono) va bene, ma se supera il 50-60% diventa eccessivo
-        "hand_general_time": (0.0, 5.0, 30.0, 60.0),   
-        # Grandi gesti: abbastanza simili, teniamo una soglia equilibrata
-        "face_touch_time": (0.0, 0.0, 8.0, 15.0), 
-        # Mani sul viso: 5% nei video corretti, oltre il 40% in quelli errati. Sopra il 20% deve essere già giallo/rosso!
-        "face_overlap_time": (0.0, 0.0, 8.0, 25.0),
     }
     
+    # t_m normalization (seconds per minute)
     total_time = max(total_time, 0.1)
-    percentage = (sec_value / total_time) * 100
+    t_m = total_time / 60.0
+    val_pm = sec_value / t_m
     
-    min_red, min_yellow, max_yellow, max_red = thresholds.get(metric_name, (0, 0, 100, 100))
+    min_red, min_yellow, max_yellow, max_red = cv_dot_thresholds.get(metric_name, (0, 0, 100, 100))
     dot = "●"
     
-    if percentage < min_red:
+    if val_pm < min_red:
         color = "#F44336" 
-    elif percentage >= min_red and percentage < min_yellow:
+    elif val_pm >= min_red and val_pm < min_yellow:
         color = "#FF9800" 
-    elif percentage >= min_yellow and percentage <= max_yellow:
+    elif val_pm >= min_yellow and val_pm <= max_yellow:
         color = "#4CAF50" 
-    elif percentage > max_yellow and percentage <= max_red:
+    elif val_pm > max_yellow and val_pm <= max_red:
         color = "#FF9800" 
     else: 
         color = "#F44336" 
         
     return {
         "real_value": round(sec_value, 1),
-        "calculated_value": round(percentage, 1),
+        "calculated_value": round(val_pm, 1),
         "dot": dot,
         "color": color   
     }
@@ -118,7 +103,7 @@ def cv_performance_evaluation(cv_data_dict):
  
 
 def speech_metric_evaluation(value, base_parameter, metric_name):
-    thresholds = {
+    speech_dot_thresholds = {
         "vocal_fillers": (0.0, 0.0, 5.0, 8.0),     
         "filler_words": (0.0, 0.0, 2.0, 5.0),    
         "micro_silences": (0.0, 0.0, 5.0, 12.0), 
@@ -135,7 +120,7 @@ def speech_metric_evaluation(value, base_parameter, metric_name):
     else:
         calculated_value = value
 
-    min_red, min_yellow, max_yellow, max_red = thresholds.get(metric_name, (0, 0, 100, 100))
+    min_red, min_yellow, max_yellow, max_red = speech_dot_thresholds.get(metric_name, (0, 0, 100, 100))
     dot = "●" 
     
     if calculated_value < min_red:
