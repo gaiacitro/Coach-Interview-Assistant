@@ -189,7 +189,8 @@ def generate_suggestions(data):
         "filler_words": "filler_words",
         "micro_silences": "micro_silences",
         "long_pauses": "long_pauses",
-        "tremor": "tremor"
+        "tremor": "tremor",
+        "words_per_minute": "words_per_minute"
     }
     
     num_questions = len(data)
@@ -231,20 +232,22 @@ def generate_suggestions(data):
                 counters[metric_key]["optimal"] += 1
         
         # speech metrics
-        testo_risposta = item.get("text", "")
-        durata_audio = max(item.get("audio_duration", 0.1), 0.1)
-        total_words = max(len(testo_risposta.split()), 1)
+        response_text = item.get("text", "")
+        audio_duration = max(item.get("audio_duration", 0.1), 0.1)
+        total_words = max(len(response_text.split()), 1)
         
         vocal_fillers_rate = (item.get("vocal_fillers", 0) / total_words) * 100 
         filler_words_rate = (item.get("filler_words", 0) / total_words) * 100 
-        micro_silences_rate = (item.get("micro_silences", 0) / durata_audio) * 60  
+        micro_silences_rate = (item.get("micro_silences", 0) / audio_duration) * 60 
+        words_per_minute = (total_words / audio_duration) * 60
         
         speech_metrics = {
             "vocal_fillers": vocal_fillers_rate,
             "filler_words": filler_words_rate,
             "micro_silences": micro_silences_rate,
             "long_pauses": item.get("silence_count", 0),
-            "tremor": item.get("tremor", 0)
+            "tremor": item.get("tremor", 0),
+            "words_per_minute": words_per_minute
         }
         
         for metric_key, valore in speech_metrics.items():

@@ -74,6 +74,12 @@ SUGGESTIONS = {
     "tremor": {
         "high": "Your voice trembled a bit during your answer, which can easily happen when we feel nervous. Before speaking, try taking a deep breath from your diaphragm to support your voice and project confidence.",
         "optimal": "Your voice sounded incredibly steady and grounded! You projected calm and confidence, making your answer sound very authoritative and reassuring."
+    },
+
+    "words_per_minute": {
+        "low": "Your speaking pace was too slow. Try speaking at a slightly faster pace: it will help you convey more confidence and energy and keep your audience engaged.",
+        "high": "You were speaking very quickly. Try slowing down a little and enunciating your words more clearly: you'll sound much more fluent and clear, and you'll come across as less anxious.",
+        "optimal": "Excellent control of your delivery! You maintained a balanced and professional pace, perfect for keeping your audience engaged."
     }
 
 

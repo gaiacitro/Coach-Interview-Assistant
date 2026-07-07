@@ -26,9 +26,9 @@ def analyze_voice_tremor(audio_path):
 def analyze_speech(audio_path):
     # Extract speech metrics from audio file
     audio = AudioSegment.from_file(audio_path)
-    audio_duration_sec = len(audio) / 1000.0
+    audio_duration_sec = len(audio) / 500.0
     
-    # 1. Raise the threshold to 450 milliseconds. This will ignore natural pauses between words.
+    # 1. Raise the threshold to 500 milliseconds. This will ignore natural pauses between words.
     all_silences = detect_silence(audio, min_silence_len=500, silence_thresh=-45)
     
     # 2. We consider micro-silences to be between 500ms and 2 seconds.

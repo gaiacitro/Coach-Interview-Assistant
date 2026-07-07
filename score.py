@@ -20,9 +20,9 @@ SPEECH_DOT_THRESHOLD = {
     "vocal_fillers": (0.0, 0.0, 5.0, 8.0),     
     "filler_words": (0.0, 0.0, 2.0, 5.0),    
     "micro_silences": (0.0, 0.0, 5.0, 12.0), 
-    "long_pauses": (0.0, 0.0, 0.0, 1.0),     
+    "long_pauses": (0.0, 0.8, 2.0, 4.0),    
     "tremor": (0.0, 0.0, 33.0, 66.0),
-    "words_per_minute": (90.0, 110.0, 160.0, 180.0) 
+    "words_per_minute": (90.0, 120.0, 160.0, 180.0) 
 }
 
 
@@ -117,11 +117,10 @@ def cv_performance_evaluation(cv_data_dict):
  
 
 def speech_metric_evaluation(value, base_parameter, metric_name):
-    
     if metric_name in ["vocal_fillers", "filler_words"]:
         word_base = max(base_parameter, 1) 
         calculated_value = (value / word_base) * 100
-    elif metric_name == "micro_silences":
+    elif metric_name in ["micro_silences", "long_pauses"]:
         base_second = max(base_parameter, 0.1)
         calculated_value = (value / base_second) * 60
     else:
@@ -168,7 +167,7 @@ def speech_performance_evaluation(speech_data_dict):
         speech_data_dict.get('micro_silences', 0), sec_duration, "micro_silences"
     )
     evaluated_report["long_pauses"] = speech_metric_evaluation(
-        speech_data_dict.get('silence_count', 0), None, "long_pauses"
+    speech_data_dict.get('silence_count', 0), sec_duration, "long_pauses"
     )
     evaluated_report["tremor"] = speech_metric_evaluation(
         speech_data_dict.get('tremor', 0), None, "tremor"
@@ -216,25 +215,9 @@ def calculate_perfection_score(gravity_value, thresholds):
     """
     min_r, min_y, max_y, max_r = thresholds
 
-    # Only for the speech_gravity metric, we have a special case where both min_y and min_r are 0.0.
-    if min_y == 0.0 and min_r == 0.0:
-        if gravity_value <= max_y:
-            interval = max_y - 0.0
-            if interval > 0:
-                return 100.0 - ((gravity_value - 0.0) / interval) * 34.0
-            return 100.0
-        elif gravity_value <= max_r:
-            interval = max_r - max_y
-            if interval > 0:
-                return 66.0 - ((gravity_value - max_y) / interval) * 33.0
-            return 66.0
-        else:
-            if gravity_value >= 100.0:
-                return 0.0
-            interval = 100.0 - max_r
-            if interval > 0:
-                return 33.0 - ((gravity_value - max_r) / interval) * 33.0
-            return 0.0
+    # Only for the speech_gravity metric
+    if gravity_value == "speech_percent":
+        return 100.0 - gravity_value  # Invert the score for speech_gravity
 
     #for other metrics (face and gestures), we have the standard case with min_y > 0.0 and min_r > 0.0.
     # GREEN ZONE (Optimal amount of movement) -> Score 66 to 100
