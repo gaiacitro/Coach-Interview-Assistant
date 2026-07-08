@@ -1,41 +1,53 @@
 # Coach-Interview-Assistant
-# 🗣️ AI-Powered Oral Presentation & Interview Behavioral Analyzer
-
-An advanced Computer Vision and Affective Computing tool designed to evaluate, score, and improve an individual's non-verbal communication skills during simulated oral examinations, public speaking events, and job interviews.
-
-By creating a simulated video-call environment with a virtual interviewer, the system analyzes real-time webcam feeds to extract deep behavioral metrics, specifically focusing on **3D head pose estimation**, **postural stability (nervousness tracking)**, and **eye contact consistency**.
+# 🗣️ AI-Powered Interview Behavioral Analyzer
+Coach-Interview-Assistant is an innovative, Al-powered desktop application designed to elevate professional and academic interview training by evaluating candidate performance through multimodal behavioral analysis. The application is designed to replace subjective interview preparation with real-time, data-driven behavioral analysis, democratizing access to elite, evidence-based interview coaching without the steep financial or hardware barriers of advanced VR tools
 
 ---
 
 ## 🚀 Key Features
 
-* **High-Precision 3D Head Pose Estimation:** Extracts 6 stable 2D facial landmarks and maps them onto an anatomically calibrated 3D head model. Using geometric computer vision algorithms, it computes exact rotational degrees for **Pitch** (up/down), **Yaw** (left/right), and **Roll** (lateral tilt).
-* **Biometric Nervousness & Tremor Analysis:** Implements a rolling-window FIFO (First-In, First-Out) data buffer to compute the temporal standard deviation ($\sigma$) of head movements. This detects micro-tremors, continuous posture shifting, and involuntary adjustments associated with anxiety.
-* **Geometric Gaze Tracking (Gaze Ratio):** Measures horizontal eye movement by calculating the Euclidean distance between the center of the iris and the internal/external eye corners (canti). It objectively quantifies whether the user is maintaining direct eye contact with the display/interviewer or looking away.
-* **Real-Time Statistical Overlay:** Features a low-latency graphical heads-up display (HUD) that maps performance states, numeric angles, and behavioral warnings directly onto the video stream.
-
+* * **Multimodal Behavioral Analysis:**  Integrates Computer Vision and Natural Language Processing to extract real-time spatial, temporal, and acoustic metrics.
+  * **Visual Tracking:** Monitors visual metrics like gaze stability, head kinematics (nodding, shaking), and gesture dynamics, including spontaneous facial self-touches and excessive upper-body gesticulation.
+  * **Acoustic & Speech Evaluation:** Tracks acoustic signals such as vocal tremor (local jitter), speech fluency, micro-silences, long pauses, vocal fillers ("uhm", "er"), filler words ("basically", "like"), and Words Per Minute (WPM).
+  * **Generative AI Coaching:** Features a "Reformulate" option that utilizes an LLM to fix grammatical errors and eliminate vocal stutters, providing actionable linguistic coaching without altering the candidate's personal communication style.
+  * **Detailed Feedback Dashboard:** Generates a comprehensive results dashboard detailing performance for each individual question, utilizing a color-coded dot system (Green, Yellow, Red) and dynamic, targeted suggestions.
+    
 ---
 
 ## 🛠️ Tech Stack & Architecture
 
-* **Python 3.14**
-* **OpenCV:** Handles video capturing, geometric projections via perspective solvers, matrix transformations, and UI rendering.
-* **MediaPipe:** Utilizes the cutting-edge `FaceLandmarker` pipeline to track 478 dense 3D facial landmarks in real time under variable lighting conditions.
-* **NumPy:** Powers high-speed vector math, matrix definitions for camera intrinsics, and real-time statistical computations (standard deviation).
----
-
-## 🧠 Architectural & Mathematical Foundations
-
-### 1. 3D Head Pose Estimation (Perspective-n-Point)
-To avoid the inaccuracies of standard 2D tracking, the tool solves the **Perspective-n-Point (PnP)** problem. It establishes a correspondence between a generic 3D facial model and the 2D projected pixels captured by the camera.
-### 2. Postural Instability Metric
-Nervousness is rarely defined by a static head angle; instead, it manifests as high-frequency posture adjustments.
-### 3. Horizontal Gaze Ratio
-To ensure robust eye contact verification that remains unaffected by rapid eye blinking, the tool calculates a horizontal ratio
+The system architecture relies on a carefully selected technology stack to ensure robust tracking, low-latency processing, and seamless integration:
+* **Python 3.10**
+* **Computer Vision & Landmark Tracking:** MediaPipe, OpenCV, NumPy.
+* **Audio & Speech Processing:** Faster-Whisper, Parselmouth / Praat, pydub.
+* **Generative AI & Decision Logic:** Google Gemini LLM API (gemini-2.5-flash).
+* **GUI & Frontend Management:** CustomTkinter, pywebview, HTML/JS.
 
 ---
+
+## 🧠 How It Works
+
+### 1. Data Acquisition
+The application continuously captures video and audio in real-time during the simulated interview.
+### 2. Multimodal Extraction
+The media streams are processed asynchronously across three independent pipelines (Visual, Linguistic, and Acoustic) to extract raw behavioral metrics like gaze, speech pauses, and spoken text.
+### 3. Normalization & Classification
+Raw metrics are mathematically normalized (e.g., converted to rates per minute) and evaluated against scientifically backed thresholds to assign immediate color-coded feedback (Green, Yellow, or Red dots).
+### 4. Final Evaluation
+The system synthesizes these discrete parameters into weighted Gravity Scores, which are ultimately translated into a standard 0-100 Perfection Score to provide the user with a clear, classical grade.
+
+---
+
+## 🧑‍💻 User Experience
+  * **Context Setup**: Users can configure their session by selecting either a professional job interview or a university oral exam environment.
+  * **Immersive Simulation**: The simulation leverages an embedded HTML/JS web view to render an Al avatar that guides the session using a dual-state video system (speaking and listening).
+  * **Final Report**: Candidates can view their Final Score out of 100, read categorized lists of positive reinforcements and constructive critiques, and download their complete analytical breakdown as a standard .txt report for offline review.
+
+---
+
 ## 🔮 Future Roadmap
 
-* **Multimodal Integration:** Combine visual features with speech-to-text NLP models and audio pitch analytics to evaluate verbal fillers, speaking pace, and tone confidence.
-* **Virtual Avatar Interface:** Integrate the analytics pipeline backend into a front-end rendering engine (e.g., Godot Engine) to drive an interactive virtual human assistant that responds dynamically to user eye contact.
-* **Session Reporting:** Export data-driven timelines containing comprehensive performance scoring, engagement charts, and tailored behavioral tips post-interview.
+* **Micro-Expression Analysis:** Expand the Computer Vision pipeline to detect and analyze subtle facial micro-expressions during speech delivery.
+* **Full-Body Posture Tracking:** Integrate full-body pose estimation to evaluate overall upper-body posture, sitting balance, and spinal alignment.
+* **Semantic & Sentiment Analysis:** Utilize Large Language Models (LLMs) beyond structural text cleanup to perform real-time sentiment analysis, scoring the relevance, confidence, and persuasive power of the candidate's actual content.
+* **Historical Progress Analytics:** Implement multi-session tracking dashboards to visualize performance trends and improvement metrics over time.
