@@ -5,17 +5,15 @@ Coach-Interview-Assistant is an innovative, Al-powered desktop application desig
 ---
 
 ## 🚀 Key Features
-
-* * **Multimodal Behavioral Analysis:**  Integrates Computer Vision and Natural Language Processing to extract real-time spatial, temporal, and acoustic metrics.
-  * **Visual Tracking:** Monitors visual metrics like gaze stability, head kinematics (nodding, shaking), and gesture dynamics, including spontaneous facial self-touches and excessive upper-body gesticulation.
-  * **Acoustic & Speech Evaluation:** Tracks acoustic signals such as vocal tremor (local jitter), speech fluency, micro-silences, long pauses, vocal fillers ("uhm", "er"), filler words ("basically", "like"), and Words Per Minute (WPM).
-  * **Generative AI Coaching:** Features a "Reformulate" option that utilizes an LLM to fix grammatical errors and eliminate vocal stutters, providing actionable linguistic coaching without altering the candidate's personal communication style.
-  * **Detailed Feedback Dashboard:** Generates a comprehensive results dashboard detailing performance for each individual question, utilizing a color-coded dot system (Green, Yellow, Red) and dynamic, targeted suggestions.
+ * **Multimodal Behavioral Analysis:**  Integrates Computer Vision and Natural Language Processing to extract real-time spatial, temporal, and acoustic metrics.
+ * **Visual Tracking:** Monitors visual metrics like gaze stability, head kinematics (nodding, shaking), and gesture dynamics, including spontaneous facial self-touches and excessive upper-body gesticulation.
+ * **Acoustic & Speech Evaluation:** Tracks acoustic signals such as vocal tremor (local jitter), speech fluency, micro-silences, long pauses, vocal fillers ("uhm", "er"), filler words ("basically", "like"), and Words Per Minute (WPM).
+ * **Generative AI Coaching:** Features a "Reformulate" option that utilizes an LLM to fix grammatical errors and eliminate vocal stutters, providing actionable linguistic coaching without altering the candidate's personal communication style.
+ * **Detailed Feedback Dashboard:** Generates a comprehensive results dashboard detailing performance for each individual question, utilizing a color-coded dot system (Green, Yellow, Red) and dynamic, targeted suggestions.
     
 ---
 
 ## 🛠️ Tech Stack & Architecture
-
 The system architecture relies on a carefully selected technology stack to ensure robust tracking, low-latency processing, and seamless integration:
 * **Python 3.10**
 * **Computer Vision & Landmark Tracking:** MediaPipe, OpenCV, NumPy.
@@ -26,7 +24,6 @@ The system architecture relies on a carefully selected technology stack to ensur
 ---
 
 ## 🧠 How It Works
-
 ### 1. Data Acquisition
 The application continuously captures video and audio in real-time during the simulated interview.
 ### 2. Multimodal Extraction
@@ -46,7 +43,6 @@ The system synthesizes these discrete parameters into weighted Gravity Scores, w
 ---
 
 ## 🔮 Future Roadmap
-
 * **Micro-Expression Analysis:** Expand the Computer Vision pipeline to detect and analyze subtle facial micro-expressions during speech delivery.
 * **Full-Body Posture Tracking:** Integrate full-body pose estimation to evaluate overall upper-body posture, sitting balance, and spinal alignment.
 * **Semantic & Sentiment Analysis:** Utilize Large Language Models (LLMs) beyond structural text cleanup to perform real-time sentiment analysis, scoring the relevance, confidence, and persuasive power of the candidate's actual content.
