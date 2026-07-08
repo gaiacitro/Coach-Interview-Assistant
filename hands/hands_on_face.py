@@ -151,15 +151,15 @@ while running:
 
     # --- 8. GRAFICA E TIMER A SCHERMO ---
     colore_interfaccia = (0, 0, 255) if condizione_soddisfatta else (0, 255, 0)
-    stato_testo = "CONTATTO VISO RILEVATO!" if condizione_soddisfatta else "Nessun contatto"
+    stato_testo = "Contact Detected !" if condizione_soddisfatta else "No Contact"
     
     # Se c'è contatto, coloro anche il rettangolo del viso di rosso per feedback visivo
     if condizione_soddisfatta and area_viso:
          cv2.rectangle(frame, (area_viso[0], area_viso[1]), (area_viso[2], area_viso[3]), (0, 0, 255), 2)
     
-    cv2.putText(frame, f"Tempo Contatto: {tempo_sovrapposizione:.1f} s", (10, 40), 
+    cv2.putText(frame, f"Time of Contact: {tempo_sovrapposizione:.1f} s", (10, 40), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, colore_interfaccia, 2)
-    cv2.putText(frame, f"Stato: {stato_testo}", (10, 75), 
+    cv2.putText(frame, f"Position: {stato_testo}", (10, 75), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, colore_interfaccia, 2)
 
     cv2.imshow("Analisi Contatto Mano-Viso", frame)

@@ -169,30 +169,30 @@ while running:
                 # Le tue soglie potrebbero aver bisogno di un leggero 
                 # aggiustamento ora che partono esattamente da 0.
                 if pitch > 13: 
-                    stato_testa = "Guarda in basso"
+                    stato_testa = "Looking Down"
                 elif pitch > 7: 
                     if yaw > 30 or roll <-20:
-                        stato_testa = "Guarda in Basso"
+                        stato_testa = "Looking Down"
                     elif yaw < -30 or roll>20 :
-                        stato_testa = "Guarda in Basso"
+                        stato_testa = "Looking Down"
                 elif pitch < -18:
-                    stato_testa = "Guarda in alto"
+                    stato_testa = "Looking Up"
 
                 """
                 if yaw > 30 or roll <-20:
-                    stato_testa = "Guarda a Sinistra"
+                    stato_testa = "Looking Left"
                 elif yaw < -30 or roll>20 :
-                    stato_testa = "Guarda a Destra"
+                    stato_testa = "Looking Right"
                 """
             
 
                 # Interfaccia a regime
-                cv2.putText(frame, f"Stato: {stato_testa}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                cv2.putText(frame, f"Position: {stato_testa}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 cv2.putText(frame, f"Pitch: {int(pitch)}", (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
                 cv2.putText(frame, f"Yaw: {int(yaw)}", (20, 130), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
                 cv2.putText(frame, f"Roll: {int(roll)}", (20, 160), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
-    cv2.imshow("Movimento Viso", frame)
+    cv2.imshow("Face Movements", frame)
 
     tasto = cv2.waitKey(1) & 0xFF
     if tasto == ord("q"):
